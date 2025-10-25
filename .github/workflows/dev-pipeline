@@ -12,39 +12,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Detener contenedores previos
+      - name: Run unit tests
+        run: |
+          echo "🧪 Running Maven test suite..."
+          ./mvnw -B test
+
       - name: Stop existing containers
         run: |
           docker compose -f core.yml down || true
           docker compose -f compose.yml down || true
 
-      # 3. Construir y levantar servicios base
       - name: Build and start core services
         run: |
           echo "🚧 Building core services..."
           docker compose -f core.yml up -d --build
 
-      # 4. Construir y levantar microservicios
       - name: Build and start microservices
         run: |
           echo "⚙️ Building selected microservices..."
           docker compose -f compose.yml up -d --build
 
-      # 5. Esperar arranque de contenedores
       - name: Wait for services
         run: |
           echo "⌛ Waiting for containers to start..."
           sleep 20
 
-      # 6. Verificar contenedores activos
       - name: List running containers
         run: docker ps -a
 
-      # 7. Limpieza final
       - name: Clean up environment
         if: always()
         run: |
