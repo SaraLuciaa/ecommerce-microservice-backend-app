@@ -58,8 +58,20 @@ public class CredentialServiceImpl implements CredentialService {
 	@Override
 	public CredentialDto update(final Integer credentialId, final CredentialDto credentialDto) {
 		log.info("*** CredentialDto, service; update credential with credentialId *");
-		return CredentialMappingHelper.map(this.credentialRepository.save(
-				CredentialMappingHelper.map(this.findById(credentialId))));
+		this.findById(credentialId);
+		CredentialDto dtoToPersist = CredentialDto.builder()
+				.credentialId(credentialId)
+				.username(credentialDto.getUsername())
+				.password(credentialDto.getPassword())
+				.roleBasedAuthority(credentialDto.getRoleBasedAuthority())
+				.isEnabled(credentialDto.getIsEnabled())
+				.isAccountNonExpired(credentialDto.getIsAccountNonExpired())
+				.isAccountNonLocked(credentialDto.getIsAccountNonLocked())
+				.isCredentialsNonExpired(credentialDto.getIsCredentialsNonExpired())
+				.userDto(credentialDto.getUserDto())
+				.verificationTokenDtos(credentialDto.getVerificationTokenDtos())
+				.build();
+		return CredentialMappingHelper.map(this.credentialRepository.save(CredentialMappingHelper.map(dtoToPersist)));
 	}
 	
 	@Override
