@@ -17,8 +17,13 @@ jobs:
 
       - name: Run unit tests
         run: |
-          echo "🧪 Running Maven test suite..."
+          echo "🧪 Running Maven unit test suite..."
           ./mvnw -B test
+
+      - name: Run integration tests
+        run: |
+          echo "🔗 Running Maven integration test suite..."
+          ./mvnw -B verify -Pintegration-tests
 
       - name: Stop existing containers
         run: |
