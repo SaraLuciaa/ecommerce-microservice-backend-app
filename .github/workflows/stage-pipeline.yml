@@ -12,26 +12,42 @@ jobs:
     runs-on: [self-hosted, Windows]
     defaults:
       run:
-        shell: powershell
+        shell: pwsh
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
       - name: Run unit tests
-        shell: '"C:\Windows\system32\wsl.exe" -e bash {0}'
-        run: .\mvnw -B test
+        run: .\mvnw.cmd -B test
 
       - name: Run integration tests
-        run: .\mvnw -B verify -Pintegration-tests
+        run: .\mvnw.cmd -B verify -Pintegration-tests
 
-      - name: Clean Minikube
+      # --- Kubernetes deployment ---
+      - name: Restart Minikube
         run: |
+          Write-Host "Restarting Minikube cluster..."
           minikube delete
           minikube start --driver=docker
+          kubectl config use-context minikube
 
-      - name: Deploy to Minikube
-        run: kubectl apply -f k8s/
+      - name: Deploy manifests
+        run: |
+          Write-Host "Applying Kubernetes manifests..."
+          kubectl apply -f k8s/
+          Start-Sleep -Seconds 15
+          kubectl get pods
+          kubectl get svc
 
-      - name: Verify deployment
-        run: kubectl get pods && kubectl get svc
+      - name: Verify running resources
+        run: |
+          kubectl get deployments -o wide
+          kubectl get pods -o wide
+          kubectl get svc -o wide
