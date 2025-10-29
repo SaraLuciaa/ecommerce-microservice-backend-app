@@ -1,4 +1,4 @@
-name: Stage Environment - Test & Deploy
+name: Stage Environment - Deploy
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ develop, stage ]
 
 jobs:
-  test_and_deploy:
-    name: Test & Deploy
+  deploy:
+    name: Deploy
     runs-on: [self-hosted, Windows]
 
     steps:
@@ -24,6 +24,7 @@ jobs:
       - name: Deploy manifests
         run: |
           kubectl apply -f k8s/
+          Start-Sleep -Seconds 30
           kubectl get pods
           kubectl get svc
 
