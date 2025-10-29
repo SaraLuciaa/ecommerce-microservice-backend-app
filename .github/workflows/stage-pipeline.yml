@@ -17,16 +17,13 @@ jobs:
 
       - name: Restart Minikube
         run: |
-          Write-Host "Restarting Minikube cluster..."
           minikube delete
           minikube start --driver=docker
           kubectl config use-context minikube
 
       - name: Deploy manifests
         run: |
-          Write-Host "Applying Kubernetes manifests..."
           kubectl apply -f k8s/
-          Start-Sleep -Seconds 15
           kubectl get pods
           kubectl get svc
 
