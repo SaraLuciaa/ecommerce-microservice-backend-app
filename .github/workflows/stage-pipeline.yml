@@ -1,0 +1,37 @@
+name: Dev Environment - Build & Test
+
+on:
+  push:
+    branches: [ develop, stage ]
+  pull_request:
+    branches: [ develop, stage ]
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: |
+          echo " Running Maven unit test suite..."
+          ./mvnw -B test
+
+      - name: Run integration tests
+        run: |
+          echo "Running Maven integration test suite..."
+          ./mvnw -B verify -Pintegration-tests
+
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.30.0'
+
+      - name: Deploy to Minikube
+        run: kubectl apply -f k8s/
+
+      - name: Verify deployment
+        run: kubectl get pods && kubectl get svc
