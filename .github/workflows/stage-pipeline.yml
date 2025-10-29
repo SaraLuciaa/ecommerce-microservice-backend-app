@@ -24,12 +24,14 @@ jobs:
       - name: Deploy manifests
         run: |
           kubectl apply -f k8s/
-          Start-Sleep -Seconds 30
-          kubectl get pods
-          kubectl get svc
 
       - name: Verify running resources
         run: |
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
           kubectl get deployments -o wide
           kubectl get pods -o wide
           kubectl get svc -o wide
