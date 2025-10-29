@@ -18,11 +18,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
       - name: Run unit tests
-        run: .\mvnw.cmd -B test
+        shell: "C:\\Windows\\system32\\wsl.exe -e bash {0}"
+        run: .\mvnw -B test
 
       - name: Run integration tests
-        run: .\mvnw.cmd -B verify -Pintegration-tests
+        run: .\mvnw -B verify -Pintegration-tests
 
       - name: Clean Minikube
         run: |
