@@ -7,7 +7,7 @@ services:
     networks:
       - microservices_network
   service-discovery-container:
-    image: selimhorri/service-discovery-ecommerce-boot:0.1.0
+    image: saraluciaaa/service-discovery-ecommerce-boot:1.0.0dev
     ports:
       - 8761:8761
     networks:
@@ -17,7 +17,7 @@ services:
       - SPRING_ZIPKIN_BASE-URL=http://zipkin:9411
       - SPRING_CONFIG_IMPORT=optional:configserver:http://cloud-config-container:9296/
   cloud-config-container:
-    image: selimhorri/cloud-config-ecommerce-boot:0.1.0
+    image: saraluciaaa/cloud-config-ecommerce-boot:1.0.0dev
     ports:
       - 9296:9296
     networks:

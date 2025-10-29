@@ -2,7 +2,7 @@
 version: '3'
 services:
   api-gateway-container:
-    image: selimhorri/api-gateway-ecommerce-boot:0.1.0
+    image: saraluciaaa/api-gateway-ecommerce-boot:1.0.0dev
     ports:
       - 8081:8080
     environment:
@@ -16,7 +16,7 @@ services:
     networks:
       - microservices_network
   proxy-client-container:
-    image: selimhorri/proxy-client-ecommerce-boot:0.1.0
+    image: saraluciaaa/proxy-client-ecommerce-boot:1.0.0dev
     ports:
       - 8900:8900
     environment:
@@ -30,7 +30,7 @@ services:
     networks:
       - microservices_network
   order-service-container:
-    image: selimhorri/order-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/order-service-ecommerce-boot:1.0.0dev
     ports:
       - 8300:8300
     environment:
@@ -44,7 +44,7 @@ services:
     networks:
       - microservices_network
   payment-service-container:
-    image: selimhorri/payment-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/payment-service-ecommerce-boot:1.0.0dev
     ports:
       - 8400:8400
     environment:
@@ -58,7 +58,7 @@ services:
     networks:
       - microservices_network
   product-service-container:
-    image: selimhorri/product-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/product-service-ecommerce-boot:1.0.0dev
     ports:
       - 8500:8500
     environment:
@@ -72,7 +72,7 @@ services:
     networks:
       - microservices_network
   shipping-service-container:
-    image: selimhorri/shipping-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/shipping-service-ecommerce-boot:1.0.0dev
     ports:
       - 8600:8600
     environment:
@@ -86,7 +86,7 @@ services:
     networks:
       - microservices_network
   user-service-container:
-    image: selimhorri/user-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/user-service-ecommerce-boot:1.0.0dev
     ports:
       - 8700:8700
     environment:
@@ -100,7 +100,7 @@ services:
     networks:
       - microservices_network
   favourite-service-container:
-    image: selimhorri/favourite-service-ecommerce-boot:0.1.0
+    image: saraluciaaa/favourite-service-ecommerce-boot:1.0.0dev
     ports:
       - 8800:8800
     environment:
