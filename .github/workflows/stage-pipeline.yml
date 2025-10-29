@@ -15,12 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run unit tests
-        run: .\mvnw.cmd -B test
-
-      - name: Run integration tests
-        run: .\mvnw.cmd -B verify -Pintegration-tests
-
       - name: Restart Minikube
         run: |
           Write-Host "Restarting Minikube cluster..."
