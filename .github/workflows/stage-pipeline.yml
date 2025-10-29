@@ -10,9 +10,6 @@ jobs:
   test_and_deploy:
     name: Test & Deploy
     runs-on: [self-hosted, Windows]
-    defaults:
-      run:
-        shell: pwsh
 
     steps:
       - name: Checkout repository
