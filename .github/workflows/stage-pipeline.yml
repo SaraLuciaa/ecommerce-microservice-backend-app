@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run unit tests
-        shell: "C:\\Windows\\system32\\wsl.exe -e bash {0}"
+        shell: '"C:\Windows\system32\wsl.exe" -e bash {0}'
         run: .\mvnw -B test
 
       - name: Run integration tests
