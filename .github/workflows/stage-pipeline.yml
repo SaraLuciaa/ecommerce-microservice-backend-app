@@ -1,0 +1,52 @@
+name: Stage Environment - Deploy
+
+on:
+  push:
+    branches: [ stage ]
+  pull_request:
+    branches: [ stage ]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, Windows]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restart Minikube
+        run: |
+          Write-Host "Cleaning Minikube..."
+          minikube delete
+          Write-Host "Starting Minikube..."
+          minikube start --driver=docker
+          Write-Host "Setting kubectl context to Minikube..."
+          kubectl config use-context minikube
+
+      - name: Deploy manifests
+        run: |
+          Write-Host "Applying Kubernetes manifests..."
+          kubectl apply -f k8s/
+
+      - name: Verify running resources
+        run: |
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
+          Write-Host "Listing deployments, pods, and services:"
+          kubectl get deployments -o wide
+          kubectl get pods -o wide
+          kubectl get svc -o wide
+
+      - name: Cleanup Kubernetes resources and Minikube
+        if: always()
+        run: |
+          Write-Host "Cleaning up Kubernetes resources (ignoring not-found)..."
+          kubectl delete -f k8s/ --ignore-not-found
+          Write-Host "Stopping Minikube..."
+          minikube stop || Write-Host "minikube stop failed or minikube not running"
+          Write-Host "Deleting Minikube cluster..."
+          minikube delete || Write-Host "minikube delete failed or cluster already removed"

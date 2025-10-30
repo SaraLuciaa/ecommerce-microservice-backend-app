@@ -59,8 +59,17 @@ public class CategoryServiceImpl implements CategoryService {
 	@Override
 	public CategoryDto update(final Integer categoryId, final CategoryDto categoryDto) {
 		log.info("*** CategoryDto, service; update category with categoryId *");
+		this.findById(categoryId);
+		final CategoryDto dtoToPersist = CategoryDto.builder()
+				.categoryId(categoryId)
+				.categoryTitle(categoryDto.getCategoryTitle())
+				.imageUrl(categoryDto.getImageUrl())
+				.parentCategoryDto(categoryDto.getParentCategoryDto())
+				.subCategoriesDtos(categoryDto.getSubCategoriesDtos())
+				.productDtos(categoryDto.getProductDtos())
+				.build();
 		return CategoryMappingHelper.map(this.categoryRepository
-				.save(CategoryMappingHelper.map(this.findById(categoryId))));
+			.save(CategoryMappingHelper.map(dtoToPersist)));
 	}
 	
 	@Override

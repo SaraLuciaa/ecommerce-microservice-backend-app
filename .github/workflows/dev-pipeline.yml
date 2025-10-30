@@ -1,0 +1,56 @@
+name: Dev Environment - Build & Test
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: |
+          echo "🧪 Running Maven unit test suite..."
+          ./mvnw -B test
+
+      - name: Run integration tests
+        run: |
+          echo "🔗 Running Maven integration test suite..."
+          ./mvnw -B verify -Pintegration-tests
+
+      - name: Stop existing containers
+        run: |
+          docker compose -f core.yml down || true
+          docker compose -f compose.yml down || true
+
+      - name: Build and start core services
+        run: |
+          echo "🚧 Building core services..."
+          docker compose -f core.yml up -d --build
+
+      - name: Build and start microservices
+        run: |
+          echo "⚙️ Building selected microservices..."
+          docker compose -f compose.yml up -d --build
+
+      - name: Wait for services
+        run: |
+          echo "⌛ Waiting for containers to start..."
+          sleep 20
+
+      - name: List running containers
+        run: docker ps -a
+
+      - name: Clean up environment
+        if: always()
+        run: |
+          echo "🧹 Cleaning environment..."
+          docker compose -f compose.yml down
+          docker compose -f core.yml down

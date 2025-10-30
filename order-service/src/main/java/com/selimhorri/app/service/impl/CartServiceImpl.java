@@ -74,8 +74,12 @@ public class CartServiceImpl implements CartService {
 	@Override
 	public CartDto update(final Integer cartId, final CartDto cartDto) {
 		log.info("*** CartDto, service; update cart with cartId *");
+		this.cartRepository.findById(cartId)
+			.orElseThrow(() -> new CartNotFoundException(String
+					.format("Cart with id: %d not found", cartId)));
+		cartDto.setCartId(cartId);
 		return CartMappingHelper.map(this.cartRepository
-				.save(CartMappingHelper.map(this.findById(cartId))));
+				.save(CartMappingHelper.map(cartDto)));
 	}
 	
 	@Override

@@ -59,8 +59,18 @@ public class ProductServiceImpl implements ProductService {
 	@Override
 	public ProductDto update(final Integer productId, final ProductDto productDto) {
 		log.info("*** ProductDto, service; update product with productId *");
+		this.findById(productId);
+		final ProductDto dtoToPersist = ProductDto.builder()
+				.productId(productId)
+				.productTitle(productDto.getProductTitle())
+				.imageUrl(productDto.getImageUrl())
+				.sku(productDto.getSku())
+				.priceUnit(productDto.getPriceUnit())
+				.quantity(productDto.getQuantity())
+				.categoryDto(productDto.getCategoryDto())
+				.build();
 		return ProductMappingHelper.map(this.productRepository
-				.save(ProductMappingHelper.map(this.findById(productId))));
+			.save(ProductMappingHelper.map(dtoToPersist)));
 	}
 	
 	@Override
