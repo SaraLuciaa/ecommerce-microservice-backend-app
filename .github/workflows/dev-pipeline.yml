@@ -17,12 +17,12 @@ jobs:
 
       - name: Run unit tests
         run: |
-          echo "🧪 Running Maven unit test suite..."
+          echo "Running Maven unit test suite..."
           ./mvnw -B test
 
       - name: Run integration tests
         run: |
-          echo "🔗 Running Maven integration test suite..."
+          echo "Running Maven integration test suite..."
           ./mvnw -B verify -Pintegration-tests
 
       - name: Stop existing containers
@@ -32,17 +32,17 @@ jobs:
 
       - name: Build and start core services
         run: |
-          echo "🚧 Building core services..."
+          echo "Building core services..."
           docker compose -f core.yml up -d --build
 
       - name: Build and start microservices
         run: |
-          echo "⚙️ Building selected microservices..."
+          echo "Building selected microservices..."
           docker compose -f compose.yml up -d --build
 
       - name: Wait for services
         run: |
-          echo "⌛ Waiting for containers to start..."
+          echo "Waiting for containers to start..."
           sleep 20
 
       - name: List running containers
@@ -51,6 +51,6 @@ jobs:
       - name: Clean up environment
         if: always()
         run: |
-          echo "🧹 Cleaning environment..."
+          echo "Cleaning environment..."
           docker compose -f compose.yml down
           docker compose -f core.yml down

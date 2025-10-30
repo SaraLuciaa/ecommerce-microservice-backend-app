@@ -1,0 +1,26 @@
+name: Stage Environment - Test
+
+on:
+  push:
+    branches: [ stage ]
+  pull_request:
+    branches: [ stage ]
+
+jobs:
+  build_and_test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: |
+          echo "Running Maven unit test suite..."
+          ./mvnw -B test
+
+      - name: Run integration tests
+        run: |
+          echo "Running Maven integration test suite..."
+          ./mvnw -B verify -Pintegration-tests
