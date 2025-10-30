@@ -1,37 +1,52 @@
-name: Dev Environment - Build & Test
+name: Stage Environment - Deploy
 
 on:
   push:
-    branches: [ develop, stage ]
+    branches: [ stage ]
   pull_request:
-    branches: [ develop, stage ]
+    branches: [ stage ]
 
 jobs:
-  build_and_test:
-    name: Build & Test
-    runs-on: ubuntu-latest
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, Windows]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run unit tests
+      - name: Restart Minikube
         run: |
-          echo " Running Maven unit test suite..."
-          ./mvnw -B test
+          Write-Host "Cleaning Minikube..."
+          minikube delete
+          Write-Host "Starting Minikube..."
+          minikube start --driver=docker
+          Write-Host "Setting kubectl context to Minikube..."
+          kubectl config use-context minikube
 
-      - name: Run integration tests
+      - name: Deploy manifests
         run: |
-          echo "Running Maven integration test suite..."
-          ./mvnw -B verify -Pintegration-tests
+          Write-Host "Applying Kubernetes manifests..."
+          kubectl apply -f k8s/
 
-      - name: Set up Kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.30.0'
+      - name: Verify running resources
+        run: |
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
+          Write-Host "Listing deployments, pods, and services:"
+          kubectl get deployments -o wide
+          kubectl get pods -o wide
+          kubectl get svc -o wide
 
-      - name: Deploy to Minikube
-        run: kubectl apply -f k8s/
-
-      - name: Verify deployment
-        run: kubectl get pods && kubectl get svc
+      - name: Cleanup Kubernetes resources and Minikube
+        if: always()
+        run: |
+          Write-Host "Cleaning up Kubernetes resources (ignoring not-found)..."
+          kubectl delete -f k8s/ --ignore-not-found
+          Write-Host "Stopping Minikube..."
+          minikube stop || Write-Host "minikube stop failed or minikube not running"
+          Write-Host "Deleting Minikube cluster..."
+          minikube delete || Write-Host "minikube delete failed or cluster already removed"
