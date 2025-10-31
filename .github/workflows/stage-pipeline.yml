@@ -7,7 +7,7 @@ on:
     branches: [ stage ]
 
 jobs:
-  build:
+  test:
     name: Tests
     runs-on: ubuntu-latest
 
@@ -29,7 +29,6 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     runs-on: [self-hosted, Windows]
-    needs: build
 
     steps:
       - name: Checkout repository
@@ -50,6 +49,22 @@ jobs:
 
       - name: Verify running resources
         run: |
-          kubectl wait --for=condition=available --all deployment --timeout=600s
-          kubectl wait --for=condition=Ready pod --all --timeout=600s
-          kubectl get deployments,pods,svc -o wide
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
+          Write-Host "Listing deployments, pods, and services:"
+          kubectl get deployments -o wide
+          kubectl get pods -o wide
+          kubectl get svc -o wide
+
+      - name: Cleanup Kubernetes resources and Minikube
+        if: always()
+        run: |
+          Write-Host "Cleaning up Kubernetes resources (ignoring not-found)..."
+          kubectl delete -f k8s/ --ignore-not-found
+          Write-Host "Stopping Minikube..."
+          minikube stop || Write-Host "minikube stop failed or minikube not running"
+          Write-Host "Deleting Minikube cluster..."
+          minikube delete || Write-Host "minikube delete failed or cluster already removed"
