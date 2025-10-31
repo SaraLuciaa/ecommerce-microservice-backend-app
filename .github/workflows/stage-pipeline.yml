@@ -2,7 +2,7 @@ name: Stage Environment - Build, Test & Deploy
 
 on:
   push:
-    branches: [ stage, develop ]
+    branches: [ stage ]
   pull_request:
     branches: [ stage ]
 
