@@ -24,3 +24,9 @@ jobs:
         run: |
           echo "Running Maven integration test suite..."
           ./mvnw -B verify -Pintegration-tests
+
+      - name: Run E2E tests
+        run: |
+          echo "Running E2E tests from proxy-client..."
+          cd proxy-client
+          ../mvnw -B test -Dtest=**/*E2ETest
