@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run unit tests for specific services
+      - name: Run unit tests
         run: |
           echo "Running Maven unit tests"
           ./mvnw -B test -pl user-service,product-service,favourite-service,order-service,shipping-service,payment-service
