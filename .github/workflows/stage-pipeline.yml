@@ -32,10 +32,20 @@ jobs:
     needs: test
 
     steps:
+      - name: Clean workspace
+        run: |
+          $workDir = "$env:GITHUB_WORKSPACE"
+          if (Test-Path $workDir) {
+            Write-Host "Cleaning workspace directory..."
+            Get-ChildItem -Path $workDir -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+            if (Test-Path "$workDir\.git") {
+              Write-Host "Removing .git directory..."
+              cmd /c "rmdir /s /q `"$workDir\.git`"" 2>$null
+            }
+          }
+
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          clean: false
 
       - name: Restart Minikube
         run: |
