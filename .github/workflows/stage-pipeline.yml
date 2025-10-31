@@ -29,6 +29,7 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     runs-on: [self-hosted, Windows]
+    needs: test
 
     steps:
       - name: Checkout repository
