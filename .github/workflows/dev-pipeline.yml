@@ -1,4 +1,4 @@
-name: Dev Environment - Build & Test
+name: Dev Environment - Build, Test & Deploy
 
 on:
   push:
@@ -7,9 +7,23 @@ on:
     branches: [ develop ]
 
 jobs:
-  build_and_test:
-    name: Build & Test
+  build:
+    name: Build Microservices
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build microservices with Maven
+        run: |
+          echo "Building Maven projects..."
+          ./mvnw -B clean package -DskipTests=true
+
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - name: Checkout repository
@@ -17,27 +31,37 @@ jobs:
 
       - name: Run unit tests
         run: |
-          echo "Running Maven unit tests"
+          echo "Running Maven unit tests..."
           ./mvnw -B test -pl user-service,product-service,favourite-service,order-service,shipping-service,payment-service
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Stop existing containers
         run: |
+          echo "Stopping any existing containers..."
           docker compose -f core.yml down || true
           docker compose -f compose.yml down || true
 
       - name: Build and start core services
         run: |
-          echo "Building core services..."
+          echo "Starting core services..."
           docker compose -f core.yml up -d --build
 
       - name: Build and start microservices
         run: |
-          echo "Building selected microservices..."
+          echo "Starting selected microservices..."
           docker compose -f compose.yml up -d --build
 
       - name: Wait for services
         run: |
-          echo "Waiting for containers to start..."
+          echo "Waiting for services to initialize..."
           sleep 20
 
       - name: List running containers
@@ -46,6 +70,6 @@ jobs:
       - name: Clean up environment
         if: always()
         run: |
-          echo "Cleaning environment..."
+          echo " Cleaning up environment..."
           docker compose -f compose.yml down
           docker compose -f core.yml down
