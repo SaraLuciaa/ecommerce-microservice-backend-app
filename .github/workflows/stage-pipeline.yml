@@ -1,4 +1,4 @@
-name: Stage Environment - Deploy
+name: Stage Environment - Build, Test & Deploy
 
 on:
   push:
@@ -7,11 +7,43 @@ on:
     branches: [ stage ]
 
 jobs:
-  deploy:
-    name: Deploy
-    runs-on: [self-hosted, Windows]
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          ./mvnw -B verify -Pintegration-tests
+
+      - name: Run E2E tests
+        run: |
+          echo "Running E2E tests from proxy-client..."
+          cd proxy-client
+          ../mvnw -B test -Dtest=**/*E2ETest
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: [self-hosted, Windows]
+    needs: test
+
+    steps:
+      - name: Clean workspace
+        run: |
+          $workDir = "$env:GITHUB_WORKSPACE"
+          if (Test-Path $workDir) {
+            Write-Host "Cleaning workspace directory..."
+            Get-ChildItem -Path $workDir -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+            if (Test-Path "$workDir\.git") {
+              Write-Host "Removing .git directory..."
+              cmd /c "rmdir /s /q `"$workDir\.git`"" 2>$null
+            }
+          }
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,13 +53,10 @@ jobs:
           minikube delete
           Write-Host "Starting Minikube..."
           minikube start --driver=docker
-          Write-Host "Setting kubectl context to Minikube..."
           kubectl config use-context minikube
 
       - name: Deploy manifests
-        run: |
-          Write-Host "Applying Kubernetes manifests..."
-          kubectl apply -f k8s/
+        run: kubectl apply -f k8s/
 
       - name: Verify running resources
         run: |
