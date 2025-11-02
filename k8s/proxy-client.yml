@@ -43,6 +43,4 @@ spec:
   ports:
     - port: 8900
       targetPort: 8900
-  type: ClusterIP
-
-
+  type: NodePort

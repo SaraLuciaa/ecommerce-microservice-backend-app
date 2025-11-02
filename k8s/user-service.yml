@@ -32,6 +32,12 @@ spec:
               value: http://service-discovery:8761/eureka
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: http://service-discovery:8761/eureka/
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "false"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
 ---
 apiVersion: v1
 kind: Service
