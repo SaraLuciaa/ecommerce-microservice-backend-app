@@ -1,5 +1,5 @@
 
-name: Prod, on PUSH Java CI/CD of favourite-service-ecommerce-boot, ecommerce-microservice-backend app
+name: Develop, on PUSH Java CI/CD of favourite-service-ecommerce-boot, ecommerce-microservice-backend app
 
 on:
   push:

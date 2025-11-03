@@ -1,5 +1,5 @@
 
-name: Prod, on PUSH Java CI/CD of order-service-ecommerce-boot, ecommerce-microservice-backend app
+name: Stage, on PUSH Java CI/CD of order-service-ecommerce-boot, ecommerce-microservice-backend app
 
 on:
   push:

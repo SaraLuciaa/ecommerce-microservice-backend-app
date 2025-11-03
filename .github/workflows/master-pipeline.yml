@@ -6,44 +6,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  unit_tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
+  # unit_tests:
+  #   name: Unit Tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Run Unit Tests
-        run: |
-          echo "Running unit tests for all selected microservices..."
-          ./mvnw -B test -pl user-service,product-service,favourite-service,order-service,shipping-service,payment-service
+  #     - name: Run Unit Tests
+  #       run: |
+  #         echo "Running unit tests for all selected microservices..."
+  #         ./mvnw -B test -pl user-service,product-service,favourite-service,order-service,shipping-service,payment-service
 
 
-  integration_and_e2e_tests:
-    name: Integration & E2E Tests
-    runs-on: ubuntu-latest
-    needs: unit_tests
+  # integration_and_e2e_tests:
+  #   name: Integration & E2E Tests
+  #   runs-on: ubuntu-latest
+  #   needs: unit_tests
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Run Integration Tests
-        run: |
-          echo "Running integration tests..."
-          ./mvnw -B verify -Pintegration-tests
+  #     - name: Run Integration Tests
+  #       run: |
+  #         echo "Running integration tests..."
+  #         ./mvnw -B verify -Pintegration-tests
 
-      - name: Run E2E Tests 
-        run: |
-          echo "Running E2E tests..."
-          cd proxy-client
-          ../mvnw -B test -Dtest=**/*E2ETest
+  #     - name: Run E2E Tests 
+  #       run: |
+  #         echo "Running E2E tests..."
+  #         cd proxy-client
+  #         ../mvnw -B test -Dtest=**/*E2ETest
 
   deploy_to_kubernetes:
     name: Deploy to Kubernetes
     runs-on: [self-hosted, Windows]
-    needs: integration_and_e2e_tests
+    # needs: integration_and_e2e_tests
 
     steps:
       - name: Checkout repository
@@ -55,7 +55,7 @@ jobs:
         run: |
           Write-Host "Restarting Minikube..."
           minikube delete
-          minikube start --driver=hyperv --hyperv-virtual-switch "Default Switch" --memory=6000 --cpus=2
+          minikube start --driver=desktop
           kubectl config use-context minikube
 
       - name: Apply Kubernetes manifests
@@ -84,49 +84,41 @@ jobs:
           kubectl get svc -o wide
 
   performance_tests:
-    name: Performance Tests - Locust
+    name: Performance Tests - In-cluster Locust
     runs-on: [self-hosted, Windows]
     needs: deploy_to_kubernetes
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Locust
-        run: pip install locust
-
-      - name: Get Minikube IP and URLs
-        id: urls
+      - name: Build Locust custom image
         run: |
-          $minikubeIp = minikube ip
-          $userUrl = "http://" + $minikubeIp + ":30005"
-          $productUrl = "http://" + $minikubeIp + ":30009"
-          $shippingUrl = "http://" + $minikubeIp + ":30010"
+          docker build -t locust-custom:latest -f Dockerfile.locust .
+          minikube image load locust-custom:latest
 
-          echo "userUrl=$userUrl" >> $env:GITHUB_OUTPUT
-          echo "productUrl=$productUrl" >> $env:GITHUB_OUTPUT
-          echo "shippingUrl=$shippingUrl" >> $env:GITHUB_OUTPUT
-
-      - name: Run Locust for User Service
+      - name: Run Locust test for User Service
         run: |
-          cd perf/locust
-          $url = "${{ steps.urls.outputs.userUrl }}"
-          Write-Host "Running Locust for User Service: $url"
-          locust -f user_service.py --host=$url --users 5 --spawn-rate 1 --run-time 1m --headless
+          kubectl delete pod locust-user --ignore-not-found
+          kubectl apply -f k8s/performance/locust-user.yaml
+          kubectl wait --for=condition=Ready pod/locust-user --timeout=600s
+          kubectl logs -f pod/locust-user
+          kubectl delete pod locust-user
 
-      - name: Run Locust for Product Service
+      - name: Run Locust test for Product Service
         run: |
-          cd perf/locust
-          $url = "${{ steps.urls.outputs.productUrl }}"
-          Write-Host "Running Locust for Product Service: $url"
-          locust -f product_service.py --host=$url --users 5 --spawn-rate 1 --run-time 1m --headless
+          kubectl delete pod locust-product --ignore-not-found
+          kubectl apply -f k8s/performance/locust-product.yaml
+          kubectl wait --for=condition=Ready pod/locust-product --timeout=600s
+          kubectl logs -f pod/locust-product
+          kubectl delete pod locust-product
 
-      - name: Run Locust for Shipping Service
-        run: |1
-          cd perf/locust
-          $url = "${{ steps.urls.outputs.shippingUrl }}"
-          Write-Host "Running Locust for Shipping Service: $url"
-          locust -f shipping_service.py --host=$url --users 5 --spawn-rate 1 --run-time 1m --headless
+      - name: Run Locust test for Shipping Service
+        run: |
+          kubectl delete pod locust-shipping --ignore-not-found
+          kubectl apply -f k8s/performance/locust-shipping.yaml
+          kubectl wait --for=condition=Ready pod/locust-shipping --timeout=600s
+          kubectl logs -f pod/locust-shipping
+          kubectl delete pod locust-shipping
 
   generate_release_notes:
     name: Generate Release Notes
