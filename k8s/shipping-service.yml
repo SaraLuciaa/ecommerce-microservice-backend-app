@@ -43,6 +43,6 @@ spec:
   ports:
     - port: 8600
       targetPort: 8600
-  type: ClusterIP
+  type: NodePort
 
 

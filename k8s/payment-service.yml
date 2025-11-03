@@ -43,6 +43,7 @@ spec:
   ports:
     - port: 8400
       targetPort: 8400
-  type: ClusterIP
+      nodePort: 30008
+  type: NodePort
 
 
