@@ -139,3 +139,11 @@ jobs:
         run: |
           echo "Release notes generated successfully."
           echo "${{ steps.release_notes.outputs.body }}"
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
