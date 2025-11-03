@@ -98,21 +98,21 @@ jobs:
 
       - name: Run Locust test for User Service
         run: |
-          kubectl apply -f k8s/performance/locust-user.yaml
+          kubectl apply -f k8s/performance/locust-user.yml
           kubectl wait --for=condition=Ready pod/locust-user --timeout=600s
           kubectl logs -f pod/locust-user
           kubectl delete pod locust-user
 
       - name: Run Locust test for Product Service
         run: |
-          kubectl apply -f k8s/performance/locust-product.yaml
+          kubectl apply -f k8s/performance/locust-product.yml
           kubectl wait --for=condition=Ready pod/locust-product --timeout=600s
           kubectl logs -f pod/locust-product
           kubectl delete pod locust-product
 
       - name: Run Locust test for Shipping Service
         run: |
-          kubectl apply -f k8s/performance/locust-shipping.yaml
+          kubectl apply -f k8s/performance/locust-shipping.yml
           kubectl wait --for=condition=Ready pod/locust-shipping --timeout=600s
           kubectl logs -f pod/locust-shipping
           kubectl delete pod locust-shipping
