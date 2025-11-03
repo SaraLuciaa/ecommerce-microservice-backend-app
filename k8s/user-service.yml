@@ -35,9 +35,8 @@ spec:
             - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
               value: "false"
             - name: EUREKA_INSTANCE_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+              value: user-service
+
 ---
 apiVersion: v1
 kind: Service
@@ -50,5 +49,3 @@ spec:
     - port: 8700
       targetPort: 8700
   type: ClusterIP
-
-

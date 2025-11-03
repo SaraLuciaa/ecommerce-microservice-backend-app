@@ -1,0 +1,149 @@
+name: Master Environment - Build, Test, Deploy & Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Unit Tests
+        run: |
+          echo "Running unit tests for all selected microservices..."
+          ./mvnw -B test -pl user-service,product-service,favourite-service,order-service,shipping-service,payment-service
+
+
+  integration_and_e2e_tests:
+    name: Integration & E2E Tests
+    runs-on: ubuntu-latest
+    needs: unit_tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests..."
+          ./mvnw -B verify -Pintegration-tests
+
+      - name: Run E2E Tests 
+        run: |
+          echo "Running E2E tests..."
+          cd proxy-client
+          ../mvnw -B test -Dtest=**/*E2ETest
+
+  deploy_to_kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: [self-hosted, Windows]
+    # needs: integration_and_e2e_tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: false
+
+      - name: Restart Minikube
+        run: |
+          Write-Host "Restarting Minikube..."
+          minikube delete
+          minikube start --driver=docker
+          kubectl config use-context minikube
+
+      - name: Apply Kubernetes manifests
+        run: |
+          Write-Host "Deploying services to Kubernetes..."
+          kubectl apply -f k8s/
+
+      - name: Verify running resources
+        run: |
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
+
+      - name: List Pods
+        run: |
+          kubectl get pods -o wide
+          
+      - name: List Deployments
+        run: |
+          kubectl get deployments -o wide
+
+      - name: List Services
+        run: |
+          kubectl get svc -o wide
+
+  performance_tests:
+    name: Performance Tests - In-cluster Locust
+    runs-on: [self-hosted, Windows]
+    needs: deploy_to_kubernetes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Locust custom image
+        run: |
+          docker build -t locust-custom:latest -f Dockerfile.locust .
+          minikube image load locust-custom:latest
+
+      - name: Run Locust test for User Service
+        run: |
+          kubectl apply -f k8s/performance/locust-user.yml
+          kubectl wait --for=condition=Ready pod/locust-user --timeout=600s
+          kubectl logs -f pod/locust-user
+          kubectl delete pod locust-user
+
+      - name: Run Locust test for Product Service
+        run: |
+          kubectl apply -f k8s/performance/locust-product.yml
+          kubectl wait --for=condition=Ready pod/locust-product --timeout=600s
+          kubectl logs -f pod/locust-product
+          kubectl delete pod locust-product
+
+      - name: Run Locust test for Shipping Service
+        run: |
+          kubectl apply -f k8s/performance/locust-shipping.yml
+          kubectl wait --for=condition=Ready pod/locust-shipping --timeout=600s
+          kubectl logs -f pod/locust-shipping
+          kubectl delete pod locust-shipping
+
+  generate_release_notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    needs: performance_tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Release Notes
+        id: release_notes
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show generated notes
+        run: |
+          echo "Release notes generated successfully."
+          echo "${{ steps.release_notes.outputs.body }}"
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

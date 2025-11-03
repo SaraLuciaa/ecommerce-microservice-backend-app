@@ -37,7 +37,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		
 		// Skip JWT validation for authentication endpoints
 		String requestPath = request.getRequestURI();
-		if (requestPath.contains("/api/authenticate") || 
+		if (requestPath.contains("/api/authenticate") ||
+			requestPath.contains("/app/api/authenticate") ||
 		    requestPath.contains("/swagger-ui") || 
 		    requestPath.contains("/v3/api-docs") ||
 		    requestPath.contains("/api/categories") ||

@@ -1,5 +1,5 @@
 
-name: Stage, on PR Java CI/CD of shipping-service, ecommerce-microservice-backend app
+name: Prod, on PR Java CI/CD of shipping-service, ecommerce-microservice-backend app
 
 on:
   pull_request:

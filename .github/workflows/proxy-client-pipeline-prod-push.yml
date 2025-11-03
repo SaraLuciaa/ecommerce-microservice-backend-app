@@ -1,5 +1,5 @@
 
-name: Develop, on PUSH Java CI/CD of proxy-client-ecommerce-boot, ecommerce-microservice-backend app
+name: Prod, on PUSH Java CI/CD of proxy-client-ecommerce-boot, ecommerce-microservice-backend app
 
 on:
   push:

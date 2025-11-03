@@ -1,5 +1,5 @@
 
-name: Develop, on PR Java CI/CD of proxy-client, ecommerce-microservice-backend app
+name: Stage, on PR Java CI/CD of proxy-client, ecommerce-microservice-backend app
 
 on:
   pull_request:
