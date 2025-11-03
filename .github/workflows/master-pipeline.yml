@@ -98,7 +98,6 @@ jobs:
 
       - name: Run Locust test for User Service
         run: |
-          kubectl delete pod locust-user --ignore-not-found
           kubectl apply -f k8s/performance/locust-user.yaml
           kubectl wait --for=condition=Ready pod/locust-user --timeout=600s
           kubectl logs -f pod/locust-user
@@ -106,7 +105,6 @@ jobs:
 
       - name: Run Locust test for Product Service
         run: |
-          kubectl delete pod locust-product --ignore-not-found
           kubectl apply -f k8s/performance/locust-product.yaml
           kubectl wait --for=condition=Ready pod/locust-product --timeout=600s
           kubectl logs -f pod/locust-product
@@ -114,7 +112,6 @@ jobs:
 
       - name: Run Locust test for Shipping Service
         run: |
-          kubectl delete pod locust-shipping --ignore-not-found
           kubectl apply -f k8s/performance/locust-shipping.yaml
           kubectl wait --for=condition=Ready pod/locust-shipping --timeout=600s
           kubectl logs -f pod/locust-shipping
