@@ -98,10 +98,10 @@ jobs:
       - name: Get Minikube IP and URLs
         id: urls
         run: |
-          $minikubeIp = (minikube ip).Trim()
-          $userUrl = "http://$minikubeIp:30005"
-          $productUrl = "http://$minikubeIp:30006"
-          $shippingUrl = "http://$minikubeIp:30007"
+          $minikubeIp = minikube ip
+          $userUrl = "http://" + $minikubeIp + ":30005"
+          $productUrl = "http://" + $minikubeIp + ":30009"
+          $shippingUrl = "http://" + $minikubeIp + ":30010"
 
           echo "userUrl=$userUrl" >> $env:GITHUB_OUTPUT
           echo "productUrl=$productUrl" >> $env:GITHUB_OUTPUT
