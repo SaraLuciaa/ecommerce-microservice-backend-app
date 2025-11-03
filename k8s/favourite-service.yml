@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: favourite-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: favourite-service
+  template:
+    metadata:
+      labels:
+        app: favourite-service
+    spec:
+      containers:
+        - name: favourite-service
+          image: saraluciaaa/favourite-service-ecommerce-boot:1.0.0dev
+          ports:
+            - containerPort: 8800
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_ZIPKIN_BASE_URL
+              value: http://zipkin:9411
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:http://cloud-config:9296/
+            - name: EUREKA_CLIENT_REGION
+              value: default
+            - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
+              value: myzone
+            - name: EUREKA_CLIENT_SERVICEURL_MYZONE
+              value: http://service-discovery:8761/eureka
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://service-discovery:8761/eureka/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: favourite-service
+spec:
+  selector:
+    app: favourite-service
+  ports:
+    - port: 8800
+      targetPort: 8800
+      nodePort: 30006
+  type: NodePort
+
+

@@ -1,0 +1,5 @@
+FROM locustio/locust:2.30.1
+
+WORKDIR /mnt
+
+COPY perf/locust/*.py /mnt/

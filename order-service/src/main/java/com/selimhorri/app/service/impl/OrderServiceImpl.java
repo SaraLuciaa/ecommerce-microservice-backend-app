@@ -60,14 +60,19 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public OrderDto update(final Integer orderId, final OrderDto orderDto) {
 		log.info("*** OrderDto, service; update order with orderId *");
+		this.orderRepository.findById(orderId)
+			.orElseThrow(() -> new OrderNotFoundException(String
+					.format("Order with id: %d not found", orderId)));
+		orderDto.setOrderId(orderId);
 		return OrderMappingHelper.map(this.orderRepository
-				.save(OrderMappingHelper.map(this.findById(orderId))));
+				.save(OrderMappingHelper.map(orderDto)));
 	}
 	
 	@Override
 	public void deleteById(final Integer orderId) {
 		log.info("*** Void, service; delete order by id *");
-		this.orderRepository.delete(OrderMappingHelper.map(this.findById(orderId)));
+		this.findById(orderId);
+		this.orderRepository.deleteById(orderId);
 	}
 	
 	

@@ -60,8 +60,15 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
 	@Override
 	public VerificationTokenDto update(final Integer verificationTokenId, final VerificationTokenDto verificationTokenDto) {
 		log.info("*** VerificationTokenDto, service; update verificationToken with verificationTokenId *");
-		return VerificationTokenMappingHelper.map(this.verificationTokenRepository.save(
-				VerificationTokenMappingHelper.map(this.findById(verificationTokenId))));
+		this.findById(verificationTokenId);
+		VerificationTokenDto dtoToPersist = VerificationTokenDto.builder()
+				.verificationTokenId(verificationTokenId)
+				.token(verificationTokenDto.getToken())
+				.expireDate(verificationTokenDto.getExpireDate())
+				.credentialDto(verificationTokenDto.getCredentialDto())
+				.build();
+		return VerificationTokenMappingHelper.map(this.verificationTokenRepository
+				.save(VerificationTokenMappingHelper.map(dtoToPersist)));
 	}
 	
 	@Override

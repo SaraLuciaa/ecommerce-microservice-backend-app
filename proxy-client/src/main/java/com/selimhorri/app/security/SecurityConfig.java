@@ -40,9 +40,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.authorizeRequests()
 				.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.antMatchers("/", "index", "**/css/**", "**/js/**").permitAll()
-				.antMatchers("/api/authenticate/**").permitAll()
+				.antMatchers("/api/authenticate/**", "/app/api/authenticate/**").permitAll()
 				.antMatchers("/api/categories/**").permitAll()
 				.antMatchers("/api/products/**").permitAll()
+				.antMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 				.antMatchers("/api/**")
 					.hasAnyRole(RoleBasedAuthority.ROLE_USER.getRole(), 
 							RoleBasedAuthority.ROLE_ADMIN.getRole())

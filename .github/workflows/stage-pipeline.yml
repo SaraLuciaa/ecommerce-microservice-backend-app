@@ -1,0 +1,81 @@
+name: Stage Environment - Build, Test & Deploy
+
+on:
+  push:
+    branches: [ stage ]
+  pull_request:
+    branches: [ stage ]
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          ./mvnw -B verify -Pintegration-tests
+
+      - name: Run E2E tests
+        run: |
+          echo "Running E2E tests from proxy-client..."
+          cd proxy-client
+          ../mvnw -B test -Dtest=**/*E2ETest
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: [self-hosted, Windows]
+    needs: test
+
+    steps:
+      - name: Clean workspace
+        run: |
+          $workDir = "$env:GITHUB_WORKSPACE"
+          if (Test-Path $workDir) {
+            Write-Host "Cleaning workspace directory..."
+            Get-ChildItem -Path $workDir -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+            if (Test-Path "$workDir\.git") {
+              Write-Host "Removing .git directory..."
+              cmd /c "rmdir /s /q `"$workDir\.git`"" 2>$null
+            }
+          }
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restart Minikube
+        run: |
+          Write-Host "Cleaning Minikube..."
+          minikube delete
+          Write-Host "Starting Minikube..."
+          minikube start --driver=docker
+          kubectl config use-context minikube
+
+      - name: Deploy manifests
+        run: kubectl apply -f k8s/
+
+      - name: Verify running resources
+        run: |
+          $timeout = 600
+          Write-Host "Waiting up to $timeout seconds for all deployments to become available..."
+          kubectl wait --for=condition=available --all deployment --timeout="$($timeout)s"
+          Write-Host "Waiting up to $timeout seconds for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all --timeout="$($timeout)s"
+          Write-Host "Listing deployments, pods, and services:"
+          kubectl get deployments -o wide
+          kubectl get pods -o wide
+          kubectl get svc -o wide
+
+      - name: Cleanup Kubernetes resources and Minikube
+        if: always()
+        run: |
+          Write-Host "Cleaning up Kubernetes resources (ignoring not-found)..."
+          kubectl delete -f k8s/ --ignore-not-found
+          Write-Host "Stopping Minikube..."
+          minikube stop || Write-Host "minikube stop failed or minikube not running"
+          Write-Host "Deleting Minikube cluster..."
+          minikube delete || Write-Host "minikube delete failed or cluster already removed"

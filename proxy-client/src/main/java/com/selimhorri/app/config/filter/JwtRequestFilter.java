@@ -33,6 +33,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		
 		log.info("**JwtRequestFilter, once per request, validating and extracting token*\n");
+		log.info("Request URI: {}", request.getRequestURI());
+		
+		// Skip JWT validation for authentication endpoints
+		String requestPath = request.getRequestURI();
+		if (requestPath.contains("/api/authenticate") ||
+			requestPath.contains("/app/api/authenticate") ||
+		    requestPath.contains("/swagger-ui") || 
+		    requestPath.contains("/v3/api-docs") ||
+		    requestPath.contains("/api/categories") ||
+		    requestPath.contains("/api/products")) {
+			log.info("**Skipping JWT filter for public endpoint: {}*\n", requestPath);
+			filterChain.doFilter(request, response);
+			return;
+		}
 		
 		final var authorizationHeader = request.getHeader("Authorization");
 		

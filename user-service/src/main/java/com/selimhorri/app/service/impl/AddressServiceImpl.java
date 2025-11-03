@@ -57,8 +57,15 @@ public class AddressServiceImpl implements AddressService {
 	@Override
 	public AddressDto update(final Integer addressId, final AddressDto addressDto) {
 		log.info("*** AddressDto, service; update address with addressId *");
-		return AddressMappingHelper.map(this.addressRepository.save(
-				AddressMappingHelper.map(this.findById(addressId))));
+		this.findById(addressId);
+		AddressDto dtoToPersist = AddressDto.builder()
+				.addressId(addressId)
+				.fullAddress(addressDto.getFullAddress())
+				.postalCode(addressDto.getPostalCode())
+				.city(addressDto.getCity())
+				.userDto(addressDto.getUserDto())
+				.build();
+		return AddressMappingHelper.map(this.addressRepository.save(AddressMappingHelper.map(dtoToPersist)));
 	}
 	
 	@Override
