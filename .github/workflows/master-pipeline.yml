@@ -55,7 +55,7 @@ jobs:
         run: |
           Write-Host "Restarting Minikube..."
           minikube delete
-          minikube start --driver=desktop
+          minikube start --driver=docker
           kubectl config use-context minikube
 
       - name: Apply Kubernetes manifests
