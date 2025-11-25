@@ -34,7 +34,7 @@ import com.selimhorri.app.service.OrderService;
         "spring.cloud.discovery.enabled=false",
         "server.servlet.context-path="
 })
-class OrderServiceIntegrationTest {
+class OrderServiceVerticalIntegrationTest {
 
     private static final LocalDateTime EXISTING_ORDER_DATE = LocalDateTime.of(2024, 4, 10, 9, 30, 0, 123_000_000);
 
