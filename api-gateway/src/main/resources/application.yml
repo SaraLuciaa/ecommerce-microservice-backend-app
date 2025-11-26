@@ -13,6 +13,16 @@ spring:
   profiles:
     active:
     - dev
+
+eureka:
+  client:
+    region: ${EUREKA_CLIENT_REGION:default}
+    availability-zones:
+      default: ${EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT:myzone}
+    service-url:
+      myzone: ${EUREKA_CLIENT_SERVICEURL_MYZONE:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+
   cloud:
     gateway:
       default-filters:
