@@ -20,6 +20,7 @@ module "cloud_config" {
     "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
     "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
+  depends_on = [module.service_discovery]
 }
 
 module "service_discovery" {
@@ -33,6 +34,7 @@ module "service_discovery" {
     "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
     "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
   }
+  depends_on = [module.zipkin]
 }
 
 module "api_gateway" {
@@ -51,6 +53,7 @@ module "api_gateway" {
     "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
     "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
+  depends_on = [module.cloud_config]
 }
 
 locals {
@@ -72,6 +75,7 @@ module "order_service" {
   replicas = 1
   ports    = [8300]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "payment_service" {
@@ -81,6 +85,7 @@ module "payment_service" {
   replicas = 1
   ports    = [8400]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "product_service" {
@@ -90,6 +95,7 @@ module "product_service" {
   replicas = 1
   ports    = [8500]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "shipping_service" {
@@ -99,6 +105,7 @@ module "shipping_service" {
   replicas = 1
   ports    = [8600]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "user_service" {
@@ -108,6 +115,7 @@ module "user_service" {
   replicas = 1
   ports    = [8700]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "favourite_service" {
@@ -117,6 +125,7 @@ module "favourite_service" {
   replicas = 1
   ports    = [8800]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }
 
 module "proxy_client" {
@@ -126,4 +135,5 @@ module "proxy_client" {
   replicas = 1
   ports    = [8900]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
 }

@@ -6,6 +6,13 @@ resource "kubernetes_deployment" "this" {
     }
   }
 
+  wait_for_rollout = true
+
+  timeouts {
+    create = "20m"
+    update = "20m"
+  }
+
   spec {
     replicas = var.replicas
 
@@ -40,6 +47,37 @@ resource "kubernetes_deployment" "this" {
               name  = env.key
               value = env.value
             }
+          }
+
+          resources {
+            limits = {
+              memory = "1Gi"
+              cpu    = "500m"
+            }
+            requests = {
+              memory = "512Mi"
+              cpu    = "250m"
+            }
+          }
+
+          readiness_probe {
+            tcp_socket {
+              port = var.ports[0]
+            }
+            initial_delay_seconds = 250
+            period_seconds        = 10
+            timeout_seconds       = 3
+            failure_threshold     = 10
+          }
+
+          liveness_probe {
+            tcp_socket {
+              port = var.ports[0]
+            }
+            initial_delay_seconds = 250
+            period_seconds        = 10
+            timeout_seconds       = 3
+            failure_threshold     = 10
           }
         }
       }
