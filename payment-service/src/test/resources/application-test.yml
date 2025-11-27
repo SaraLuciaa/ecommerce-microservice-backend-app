@@ -1,0 +1,31 @@
+server:
+  servlet:
+    context-path: /payment-service
+
+spring:
+  config:
+    import: ""
+  application:
+    name: PAYMENT-SERVICE
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  datasource:
+    url: jdbc:h2:mem:payment_service_test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: ""
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  health:
+    circuitbreakers:
+      enabled: false
