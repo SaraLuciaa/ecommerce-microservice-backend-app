@@ -7,23 +7,9 @@ on:
     branches: [ develop ]
 
 jobs:
-  build:
-    name: Build Microservices
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build microservices with Maven
-        run: |
-          echo "Building Maven projects..."
-          ./mvnw -B clean package -DskipTests=true
-
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
-    needs: build
 
     steps:
       - name: Checkout repository
