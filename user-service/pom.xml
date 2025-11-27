@@ -112,16 +112,12 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.11</version>
-
 				<executions>
-					<!-- Se engancha a la fase de test -->
 					<execution>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-
-					<!-- Genera el reporte después de los tests -->
 					<execution>
 						<id>report</id>
 						<phase>test</phase>
