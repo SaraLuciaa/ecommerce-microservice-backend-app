@@ -119,31 +119,43 @@ jobs:
           kubectl logs -f pod/locust-shipping
           kubectl delete pod locust-shipping
 
-  generate_release_notes:
-    name: Generate Release Notes
+  generate-release-notes:
+    name: Generate & Publish Release Notes
     runs-on: ubuntu-latest
-    needs: performance_tests
+
+    permissions:
+      contents: write
+      pull-requests: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git info
+        run: |
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Repository: ${{ github.repository }}"
+
+      - name: Determine next version
+        id: version
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: master,main,develop,stage
+          DRY_RUN: false
 
       - name: Generate Release Notes
-        id: release_notes
-        uses: release-drafter/release-drafter@v6
+        id: release
+        uses: softprops/action-gh-release@v2
         with:
-          config-name: release-drafter.yml
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: "Release ${{ steps.version.outputs.new_tag }}"
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Show generated notes
+      - name: Summary
         run: |
-          echo "Release notes generated successfully."
-          echo "${{ steps.release_notes.outputs.body }}"
-          
-      - name: Publish Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ github.run_number }}
-          name: Release ${{ github.run_number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "Release created: ${{ steps.version.outputs.new_tag }}"
+          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.new_tag }}"
