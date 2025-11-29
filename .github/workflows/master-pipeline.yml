@@ -127,6 +127,8 @@ jobs:
       contents: write
       pull-requests: read
 
+    if: github.ref == 'refs/heads/main'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -142,7 +144,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: master,main,develop,stage
+          RELEASE_BRANCHES: main
           DRY_RUN: false
 
       - name: Generate Release Notes
@@ -151,7 +153,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
           name: "Release ${{ steps.version.outputs.new_tag }}"
-          generate_release_notes: true
+          generate_release_notes: true 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
