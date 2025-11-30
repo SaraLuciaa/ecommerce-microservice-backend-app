@@ -41,3 +41,6 @@ __pycache__/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
