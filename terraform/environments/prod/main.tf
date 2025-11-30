@@ -1,4 +1,4 @@
-resource "kubernetes_namespace" "dev" {
+resource "kubernetes_namespace" "prod" {
   metadata {
     name = "prod"
   }
