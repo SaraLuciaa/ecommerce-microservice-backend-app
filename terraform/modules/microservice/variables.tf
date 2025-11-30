@@ -1,3 +1,9 @@
+variable "namespace" {
+  type    = string
+  description = "Kubernetes namespace where the service will be deployed"
+  default = "default"
+}
+
 variable "name" {
   description = "Name of the microservice"
   type        = string

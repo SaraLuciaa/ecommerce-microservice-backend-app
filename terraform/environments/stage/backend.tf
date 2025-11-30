@@ -4,7 +4,7 @@ terraform {
     organization = "ingesoffttt" 
 
     workspaces { 
-      name = "ecommerce-prod" 
+      name = "ecommerce-stage" 
     } 
   } 
 }
