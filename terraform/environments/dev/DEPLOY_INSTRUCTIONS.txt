@@ -1,0 +1,8 @@
+# Step 1: Create only the cluster first
+# Uncomment this file and apply, then rename back to main.tf
+
+# First apply: Create cluster only
+# terraform apply -target=digitalocean_kubernetes_cluster.dev
+
+# After cluster is created, you can apply everything:
+# terraform apply

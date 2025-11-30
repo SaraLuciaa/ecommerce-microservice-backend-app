@@ -31,5 +31,5 @@ variable "node_count" {
 variable "k8s_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.31.1-do.4"
+  default     = "1.30.3-do.0"
 }

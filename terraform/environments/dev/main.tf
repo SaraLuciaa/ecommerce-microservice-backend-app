@@ -2,6 +2,8 @@ resource "kubernetes_namespace" "dev" {
   metadata {
     name = "dev"
   }
+  
+  depends_on = [digitalocean_kubernetes_cluster.dev]
 }
 
 module "zipkin" {
@@ -11,6 +13,8 @@ module "zipkin" {
   replicas = 1
   ports    = [9411]
   namespace = "dev"
+  
+  depends_on = [kubernetes_namespace.dev]
 }
 
 module "service_discovery" {
