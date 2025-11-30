@@ -9,6 +9,7 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 
 import com.selimhorri.app.constant.AppConstant;
 import com.selimhorri.app.domain.id.FavouriteId;
@@ -38,6 +39,7 @@ public class FavouriteServiceImpl implements FavouriteService {
 
 	@Override
 	@CircuitBreaker(name = SERVICE_CB, fallbackMethod = "findAllFallback")
+	@Retry(name = SERVICE_CB)
 	public List<FavouriteDto> findAll() {
 		log.info("*** FavouriteDto List, service; fetch all favourites *");
 		return this.favouriteRepository.findAll()
@@ -57,6 +59,7 @@ public class FavouriteServiceImpl implements FavouriteService {
 											ProductDto.class));
 						} catch (Exception e) {
 							log.error("Error fetching details: {}", e.getMessage());
+							throw e;
 						}
 					}
 					return f;
@@ -72,6 +75,7 @@ public class FavouriteServiceImpl implements FavouriteService {
 
 	@Override
 	@CircuitBreaker(name = SERVICE_CB, fallbackMethod = "findByIdFallback")
+	@Retry(name = SERVICE_CB)
 	public FavouriteDto findById(final FavouriteId favouriteId) {
 		log.info("*** FavouriteDto, service; fetch favourite by id *");
 		return this.favouriteRepository.findById(favouriteId)
