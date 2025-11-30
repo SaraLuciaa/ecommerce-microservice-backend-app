@@ -19,6 +19,7 @@ import com.selimhorri.app.exception.wrapper.FavouriteNotFoundException;
 import com.selimhorri.app.helper.FavouriteMappingHelper;
 import com.selimhorri.app.repository.FavouriteRepository;
 import com.selimhorri.app.service.FavouriteService;
+import com.selimhorri.app.service.FeatureToggleService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class FavouriteServiceImpl implements FavouriteService {
 
 	private final FavouriteRepository favouriteRepository;
 	private final RestTemplate restTemplate;
+	private final FeatureToggleService featureToggleService;
 
 	private static final String SERVICE_CB = "favouriteService";
 
@@ -42,20 +44,27 @@ public class FavouriteServiceImpl implements FavouriteService {
 				.stream()
 				.map(FavouriteMappingHelper::map)
 				.map(f -> {
-					f.setUserDto(this.restTemplate
-							.getForObject(AppConstant.DiscoveredDomainsApi.USER_SERVICE_API_URL + "/" + f.getUserId(),
-									UserDto.class));
-					f.setProductDto(this.restTemplate
-							.getForObject(
-									AppConstant.DiscoveredDomainsApi.PRODUCT_SERVICE_API_URL + "/" + f.getProductId(),
-									ProductDto.class));
+					if (this.featureToggleService.isFetchDetailsEnabled()) {
+						try {
+							f.setUserDto(this.restTemplate
+									.getForObject(
+											AppConstant.DiscoveredDomainsApi.USER_SERVICE_API_URL + "/" + f.getUserId(),
+											UserDto.class));
+							f.setProductDto(this.restTemplate
+									.getForObject(
+											AppConstant.DiscoveredDomainsApi.PRODUCT_SERVICE_API_URL + "/"
+													+ f.getProductId(),
+											ProductDto.class));
+						} catch (Exception e) {
+							log.error("Error fetching details: {}", e.getMessage());
+						}
+					}
 					return f;
 				})
 				.distinct()
 				.collect(Collectors.toUnmodifiableList());
 	}
 
-	// Fallback para findAll
 	public List<FavouriteDto> findAllFallback(Throwable t) {
 		log.error("Circuit Breaker activado (findAll). Error: {}", t.getMessage());
 		return Collections.emptyList();
@@ -81,17 +90,14 @@ public class FavouriteServiceImpl implements FavouriteService {
 						String.format("Favourite with id: [%s] not found!", favouriteId)));
 	}
 
-	// --- CORRECCIÓN AQUÍ ---
 	public FavouriteDto findByIdFallback(final FavouriteId favouriteId, Throwable t) {
 		log.error("Circuit Breaker activado (findById) para ID {}. Error: {}", favouriteId, t.getMessage());
 
 		FavouriteDto fallbackDto = new FavouriteDto();
-		// Mapeo manual de los campos del ID al DTO
 		fallbackDto.setUserId(favouriteId.getUserId());
 		fallbackDto.setProductId(favouriteId.getProductId());
 		fallbackDto.setLikeDate(favouriteId.getLikeDate());
 
-		// Los objetos complejos quedan en null indicando que no se pudieron recuperar
 		fallbackDto.setUserDto(null);
 		fallbackDto.setProductDto(null);
 

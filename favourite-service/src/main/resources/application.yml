@@ -1,4 +1,8 @@
 
+app:
+  feature:
+    fetch-details: true
+
 server:
   servlet:
     context-path: /favourite-service
