@@ -25,7 +25,7 @@ variable "node_size" {
 variable "node_count" {
   description = "Number of worker nodes"
   type        = number
-  default     = 2
+  default     = 5
 }
 
 variable "k8s_version" {
