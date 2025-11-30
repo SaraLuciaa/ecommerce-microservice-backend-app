@@ -5,7 +5,7 @@ resource "kubernetes_namespace" "dev" {
 }
 
 module "zipkin" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=develop"
   name     = "zipkin"
   image    = "openzipkin/zipkin"
   replicas = 1
@@ -14,7 +14,7 @@ module "zipkin" {
 }
 
 module "service_discovery" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "service-discovery-container"
   image    = "saraluciaaa/service-discovery-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -29,7 +29,7 @@ module "service_discovery" {
 }
 
 module "cloud_config" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "cloud-config-container"
   image    = "saraluciaaa/cloud-config-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -59,7 +59,7 @@ locals {
 }
 
 module "api_gateway" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "api-gateway-container"
   image    = "saraluciaaa/api-gateway-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -71,7 +71,7 @@ module "api_gateway" {
 }
 
 module "order_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "order-service-container"
   image    = "saraluciaaa/order-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -82,7 +82,7 @@ module "order_service" {
 }
 
 module "payment_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "payment-service-container"
   image    = "saraluciaaa/payment-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -93,7 +93,7 @@ module "payment_service" {
 }
 
 module "product_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "product-service-container"
   image    = "saraluciaaa/product-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -104,7 +104,7 @@ module "product_service" {
 }
 
 module "shipping_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "shipping-service-container"
   image    = "saraluciaaa/shipping-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -115,7 +115,7 @@ module "shipping_service" {
 }
 
 module "user_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "user-service-container"
   image    = "saraluciaaa/user-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -126,7 +126,7 @@ module "user_service" {
 }
 
 module "favourite_service" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "favourite-service-container"
   image    = "saraluciaaa/favourite-service-ecommerce-boot:1.0.0dev"
   replicas = 1
@@ -137,7 +137,7 @@ module "favourite_service" {
 }
 
 module "proxy_client" {
-  source   = "../../modules/microservice"
+  source = "git::https://github.com/SaraLuciaa/ecommerce-microservice-backend-app.git//terraform/modules/microservice?ref=master"
   name     = "proxy-client-container"
   image    = "saraluciaaa/proxy-client-ecommerce-boot:1.0.0dev"
   replicas = 1
