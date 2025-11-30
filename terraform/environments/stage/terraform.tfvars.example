@@ -1,0 +1,10 @@
+# DigitalOcean Configuration
+# Set this as an environment variable or in Terraform Cloud:
+# do_token = "dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Kubernetes Cluster Configuration
+cluster_name = "ecommerce-stage-cluster"
+region       = "nyc1"  # Options: nyc1, nyc3, sfo3, sgp1, lon1, fra1, tor1, blr1, ams3
+node_size    = "s-2vcpu-4gb"  # See: https://slugs.do-api.dev/
+node_count   = 2
+k8s_version  = "1.30.3-do.0"  # Run: doctl kubernetes options versions
