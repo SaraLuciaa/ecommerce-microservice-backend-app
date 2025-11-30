@@ -64,7 +64,7 @@ module "api_gateway" {
   image    = "saraluciaaa/api-gateway-ecommerce-boot:1.0.0dev"
   replicas = 1
   ports    = [8080] # Internal port
-  service_type = "LoadBalancer" x# Expose eternally
+  service_type = "LoadBalancer" # Expose externally
   env_vars = local.common_env
   depends_on = [module.cloud_config]
   namespace = "dev"
