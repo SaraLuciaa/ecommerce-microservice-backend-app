@@ -1,9 +1,31 @@
+resource "kubernetes_namespace" "stage" {
+  metadata {
+    name = "stage"
+  }
+}
+
 module "zipkin" {
   source   = "../../modules/microservice"
   name     = "zipkin"
   image    = "openzipkin/zipkin"
   replicas = 1
   ports    = [9411]
+  namespace = "stage"
+}
+
+module "service_discovery" {
+  source   = "../../modules/microservice"
+  name     = "service-discovery-container"
+  image    = "saraluciaaa/service-discovery-ecommerce-boot:1.0.0stage"
+  replicas = 2
+  ports    = [8761]
+  env_vars = {
+    "SPRING_PROFILES_ACTIVE"     = "stage"
+    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
+    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
+  }
+  depends_on = [module.zipkin]
+  namespace = "stage"
 }
 
 module "cloud_config" {
@@ -20,18 +42,19 @@ module "cloud_config" {
     "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
     "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
+  depends_on = [module.service_discovery]
+  namespace = "stage"
 }
 
-module "service_discovery" {
-  source   = "../../modules/microservice"
-  name     = "service-discovery-container"
-  image    = "saraluciaaa/service-discovery-ecommerce-boot:1.0.0stage"
-  replicas = 2
-  ports    = [8761]
-  env_vars = {
-    "SPRING_PROFILES_ACTIVE"     = "stage"
+locals {
+  common_env = {
+    "SPRING_PROFILES_ACTIVE"     = "dev"
     "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
     "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
+    "EUREKA_CLIENT_REGION"       = "default"
+    "EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT" = "myzone"
+    "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
+    "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
 }
 
@@ -42,39 +65,9 @@ module "api_gateway" {
   replicas = 1
   ports    = [8080]
   service_type = "LoadBalancer"
-  env_vars = {
-    "SPRING_PROFILES_ACTIVE"     = "stage"
-    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
-    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
-    "EUREKA_CLIENT_REGION"       = "default"
-    "EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT" = "myzone"
-    "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
-    "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
-  }
-}
-
-module "mysql" {
-  source        = "../../modules/mysql"
-  name          = "mysql-db"
-  database_name = "ecommerce_stage_db"
-  root_password = "root" 
-}
-
-locals {
-  common_env = {
-    "SPRING_PROFILES_ACTIVE"     = "stage"
-    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
-    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
-    "EUREKA_CLIENT_REGION"       = "default"
-    "EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT" = "myzone"
-    "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
-    "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
-    
-    # Database Configuration
-    "SPRING_DATASOURCE_URL"      = "jdbc:mysql://mysql-db:3306/ecommerce_stage_db?createDatabaseIfNotExist=true"
-    "SPRING_DATASOURCE_USERNAME" = "root"
-    "SPRING_DATASOURCE_PASSWORD" = "root"
-  }
+  env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "order_service" {
@@ -84,6 +77,8 @@ module "order_service" {
   replicas = 1
   ports    = [8300]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "payment_service" {
@@ -93,6 +88,8 @@ module "payment_service" {
   replicas = 1
   ports    = [8400]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "product_service" {
@@ -102,6 +99,8 @@ module "product_service" {
   replicas = 1
   ports    = [8500]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "shipping_service" {
@@ -111,6 +110,8 @@ module "shipping_service" {
   replicas = 1
   ports    = [8600]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "user_service" {
@@ -120,6 +121,8 @@ module "user_service" {
   replicas = 1
   ports    = [8700]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "favourite_service" {
@@ -129,6 +132,8 @@ module "favourite_service" {
   replicas = 1
   ports    = [8800]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
 
 module "proxy_client" {
@@ -138,6 +143,6 @@ module "proxy_client" {
   replicas = 1
   ports    = [8900]
   env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "stage"
 }
-
-

@@ -1,6 +1,13 @@
+resource "kubernetes_namespace" "this" {
+  metadata {
+    name = var.namespace
+  }
+}
+
 resource "kubernetes_deployment" "this" {
   metadata {
     name = var.name
+    namespace = var.namespace
     labels = {
       app = var.name
     }
@@ -88,6 +95,7 @@ resource "kubernetes_deployment" "this" {
 resource "kubernetes_service" "this" {
   metadata {
     name = var.name
+    namespace = var.namespace
   }
   spec {
     selector = {
