@@ -19,6 +19,7 @@
 	
 	<properties>
 		<java.version>11</java.version>
+		<sonar.organization>saraluciaa-ecommerce</sonar.organization>
 		<spring-cloud.version>2020.0.4</spring-cloud.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
 	</properties>

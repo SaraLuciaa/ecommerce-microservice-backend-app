@@ -1,0 +1,139 @@
+name: CI - Develop Branch
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+concurrency:
+  group: ci-develop
+  cancel-in-progress: true
+
+jobs:
+
+  unit_tests:
+    name: Unit Tests • ${{ matrix.module }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - user-service
+          - product-service
+          - order-service
+          - shipping-service
+          - payment-service
+          - favourite-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Run Unit Tests
+        run: |
+          echo "Running unit tests for ${{ matrix.module }}"
+          ./mvnw -pl ${{ matrix.module }} -am test
+
+      - name: Archive JaCoCo Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-${{ matrix.module }}
+          path: ${{ matrix.module }}/target/site/jacoco/
+
+  integration_tests:
+    name: Integration Tests • ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    needs: unit_tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - user-service
+          - product-service
+          - order-service
+          - shipping-service
+          - payment-service
+          - favourite-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests for ${{ matrix.module }}"
+          ./mvnw -pl ${{ matrix.module }} -am verify -Pintegration-tests
+
+  e2e_tests:
+    name: E2E Tests (proxy-client)
+    runs-on: ubuntu-latest
+    needs: integration_tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Run E2E Tests
+        run: |
+          echo "Running E2E tests..."
+          cd proxy-client
+          ../mvnw -B test -Dtest=**/*E2ETest
+
+  notify:
+      name: Notify on Failure
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Notify by Email on Failure
+          if: failure()
+          uses: dawidd6/action-send-mail@v3
+          with:
+            server_address: smtp.gmail.com
+            server_port: 465
+            username: ${{ secrets.EMAIL_USER }}
+            password: ${{ secrets.EMAIL_PASS }}
+            subject: "Pipeline FAILED - ${{ github.workflow }} / Job: ${{ github.job }}"
+            to: ${{ secrets.EMAIL_TO }}
+            from: "GitHub CI/CD Bot <${{ secrets.EMAIL_USER }}>"
+            body: |
+              Pipeline failure detected
+
+              Repository:  ${{ github.repository }}
+              Branch:      ${{ github.ref_name }}
+              Workflow:    ${{ github.workflow }}
+              Job:         ${{ github.job }}
+              Commit:      ${{ github.sha }}
+              Autor:       ${{ github.actor }}
+              URL:         https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+              Revisa los logs inmediatamente.

@@ -28,6 +28,10 @@ changelog:
       labels:
         - merge
 
+    - title: 📦 Otros cambios
+      labels: []
+      collapse-after: 5
+
   exclude:
     labels:
       - ignore

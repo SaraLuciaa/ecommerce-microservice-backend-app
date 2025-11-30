@@ -1,3 +1,9 @@
+resource "kubernetes_namespace" "this" {
+  metadata {
+    name = var.namespace
+  }
+}
+
 resource "kubernetes_deployment" "this" {
   metadata {
     name = var.name
