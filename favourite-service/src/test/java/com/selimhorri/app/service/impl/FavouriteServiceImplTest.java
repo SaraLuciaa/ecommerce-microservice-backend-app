@@ -28,6 +28,7 @@ import com.selimhorri.app.dto.UserDto;
 import com.selimhorri.app.exception.wrapper.FavouriteNotFoundException;
 import com.selimhorri.app.repository.FavouriteRepository;
 import com.selimhorri.app.service.FavouriteService;
+import com.selimhorri.app.service.FeatureToggleService;
 
 @ExtendWith(MockitoExtension.class)
 class FavouriteServiceImplTest {
@@ -40,17 +41,22 @@ class FavouriteServiceImplTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private FeatureToggleService featureToggleService;
+
     private FavouriteService favouriteService;
 
     @BeforeEach
     void setUp() {
-        this.favouriteService = new FavouriteServiceImpl(this.favouriteRepository, this.restTemplate);
+        this.favouriteService = new FavouriteServiceImpl(this.favouriteRepository, this.restTemplate,
+                this.featureToggleService);
     }
 
     @Test
     void findAllShouldReturnMappedDtosWithRemoteDetails() {
         Favourite favourite = buildFavourite(11, 22, LIKE_DATE);
         when(this.favouriteRepository.findAll()).thenReturn(List.of(favourite));
+        when(this.featureToggleService.isFetchDetailsEnabled()).thenReturn(true);
         when(this.restTemplate.getForObject(userUrl(favourite.getUserId()), UserDto.class))
                 .thenReturn(UserDto.builder().userId(favourite.getUserId()).firstName("Alice").build());
         when(this.restTemplate.getForObject(productUrl(favourite.getProductId()), ProductDto.class))
@@ -66,9 +72,31 @@ class FavouriteServiceImplTest {
         assertThat(dto.getUserDto().getUserId()).isEqualTo(favourite.getUserId());
         assertThat(dto.getProductDto().getProductId()).isEqualTo(favourite.getProductId());
 
-        verify(this.favouriteRepository).findAll();
         verify(this.restTemplate).getForObject(userUrl(favourite.getUserId()), UserDto.class);
         verify(this.restTemplate).getForObject(productUrl(favourite.getProductId()), ProductDto.class);
+    }
+
+    @Test
+    void findAllShouldSkipDetailsWhenToggleIsDisabled() {
+        Favourite favourite = buildFavourite(11, 22, LIKE_DATE);
+        when(this.favouriteRepository.findAll()).thenReturn(List.of(favourite));
+        when(this.featureToggleService.isFetchDetailsEnabled()).thenReturn(false);
+
+        List<FavouriteDto> result = this.favouriteService.findAll();
+
+        assertThat(result).hasSize(1);
+        FavouriteDto dto = result.get(0);
+        assertThat(dto.getUserId()).isEqualTo(favourite.getUserId());
+        assertThat(dto.getUserDto()).isNotNull();
+        assertThat(dto.getUserDto().getUserId()).isEqualTo(favourite.getUserId());
+        assertThat(dto.getUserDto().getFirstName()).isNull();
+
+        assertThat(dto.getProductDto()).isNotNull();
+        assertThat(dto.getProductDto().getProductId()).isEqualTo(favourite.getProductId());
+        assertThat(dto.getProductDto().getProductTitle()).isNull();
+
+        verify(this.favouriteRepository).findAll();
+        verifyNoInteractions(this.restTemplate);
     }
 
     @Test
@@ -138,8 +166,8 @@ class FavouriteServiceImplTest {
 
         this.favouriteService.deleteById(favouriteId);
 
-    verify(this.favouriteRepository).deleteById(favouriteId);
-    verifyNoInteractions(this.restTemplate);
+        verify(this.favouriteRepository).deleteById(favouriteId);
+        verifyNoInteractions(this.restTemplate);
     }
 
     private static Favourite buildFavourite(int userId, int productId, LocalDateTime likeDate) {
