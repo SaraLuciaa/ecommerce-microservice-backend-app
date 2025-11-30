@@ -11,6 +11,7 @@ module "zipkin" {
   replicas = 1
   ports    = [9411]
   namespace = "stage"
+  depends_on = [kubernetes_namespace.stage]
 }
 
 module "service_discovery" {
@@ -48,7 +49,7 @@ module "cloud_config" {
 
 locals {
   common_env = {
-    "SPRING_PROFILES_ACTIVE"     = "dev"
+    "SPRING_PROFILES_ACTIVE"     = "stage"
     "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
     "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
     "EUREKA_CLIENT_REGION"       = "default"
