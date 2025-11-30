@@ -25,11 +25,11 @@ variable "node_size" {
 variable "node_count" {
   description = "Number of worker nodes"
   type        = number
-  default     = 5
+  default     = 2
 }
 
 variable "k8s_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.30.3-do.0"
+  default     = "1.32.10-do.0"
 }

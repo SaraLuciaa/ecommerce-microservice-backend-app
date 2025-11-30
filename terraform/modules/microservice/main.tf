@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
+  }
+}
+
 resource "kubernetes_deployment" "this" {
   metadata {
     name = var.name

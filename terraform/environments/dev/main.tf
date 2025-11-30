@@ -14,6 +14,10 @@ module "zipkin" {
   ports    = [9411]
   namespace = "dev"
   
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [kubernetes_namespace.dev]
 }
 
@@ -28,6 +32,11 @@ module "service_discovery" {
     "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
     "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
   }
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.zipkin]
   namespace = "dev"
 }
@@ -46,6 +55,11 @@ module "cloud_config" {
     "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
     "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.service_discovery]
   namespace = "dev"
 }
@@ -70,6 +84,11 @@ module "api_gateway" {
   ports    = [8080] # Internal port
   service_type = "LoadBalancer" # Expose externally
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -81,6 +100,11 @@ module "order_service" {
   replicas = 1
   ports    = [8300]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -92,6 +116,11 @@ module "payment_service" {
   replicas = 1
   ports    = [8400]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -103,6 +132,11 @@ module "product_service" {
   replicas = 1
   ports    = [8500]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -114,6 +148,11 @@ module "shipping_service" {
   replicas = 1
   ports    = [8600]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -125,6 +164,11 @@ module "user_service" {
   replicas = 1
   ports    = [8700]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -136,6 +180,11 @@ module "favourite_service" {
   replicas = 1
   ports    = [8800]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }
@@ -147,6 +196,11 @@ module "proxy_client" {
   replicas = 1
   ports    = [8900]
   env_vars = local.common_env
+  
+  providers = {
+    kubernetes = kubernetes
+  }
+
   depends_on = [module.cloud_config]
   namespace = "dev"
 }

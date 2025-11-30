@@ -1,7 +1,11 @@
+data "digitalocean_kubernetes_versions" "current" {
+  version_prefix = "1.32."
+}
+
 resource "digitalocean_kubernetes_cluster" "dev" {
   name    = var.cluster_name
   region  = var.region
-  version = var.k8s_version
+  version = data.digitalocean_kubernetes_versions.current.latest_version
 
   node_pool {
     name       = "${var.cluster_name}-pool"
