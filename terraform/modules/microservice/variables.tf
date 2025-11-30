@@ -1,3 +1,8 @@
+variable "namespace" {
+  type    = string
+  default = "default"
+}
+
 variable "name" {
   description = "Name of the microservice"
   type        = string

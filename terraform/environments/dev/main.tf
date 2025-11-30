@@ -1,9 +1,31 @@
+resource "kubernetes_namespace" "dev" {
+  metadata {
+    name = "dev"
+  }
+}
+
 module "zipkin" {
   source   = "../../modules/microservice"
   name     = "zipkin"
   image    = "openzipkin/zipkin"
   replicas = 1
   ports    = [9411]
+  namespace = "dev"
+}
+
+module "service_discovery" {
+  source   = "../../modules/microservice"
+  name     = "service-discovery-container"
+  image    = "saraluciaaa/service-discovery-ecommerce-boot:1.0.0dev"
+  replicas = 1
+  ports    = [8761]
+  env_vars = {
+    "SPRING_PROFILES_ACTIVE"     = "dev"
+    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
+    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
+  }
+  depends_on = [module.zipkin]
+  namespace = "dev"
 }
 
 module "cloud_config" {
@@ -21,39 +43,7 @@ module "cloud_config" {
     "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
   }
   depends_on = [module.service_discovery]
-}
-
-module "service_discovery" {
-  source   = "../../modules/microservice"
-  name     = "service-discovery-container"
-  image    = "saraluciaaa/service-discovery-ecommerce-boot:1.0.0dev"
-  replicas = 1
-  ports    = [8761]
-  env_vars = {
-    "SPRING_PROFILES_ACTIVE"     = "dev"
-    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
-    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
-  }
-  depends_on = [module.zipkin]
-}
-
-module "api_gateway" {
-  source   = "../../modules/microservice"
-  name     = "api-gateway-container"
-  image    = "saraluciaaa/api-gateway-ecommerce-boot:1.0.0dev"
-  replicas = 1
-  ports    = [8080] # Internal port
-  service_type = "LoadBalancer" # Expose externally
-  env_vars = {
-    "SPRING_PROFILES_ACTIVE"     = "dev"
-    "SPRING_ZIPKIN_BASE-URL"     = "http://zipkin:9411"
-    "SPRING_CONFIG_IMPORT"       = "optional:configserver:http://cloud-config-container:9296/"
-    "EUREKA_CLIENT_REGION"       = "default"
-    "EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT" = "myzone"
-    "EUREKA_CLIENT_SERVICEURL_MYZONE"      = "http://service-discovery-container:8761/eureka"
-    "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE" = "http://service-discovery-container:8761/eureka/"
-  }
-  depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 locals {
@@ -68,6 +58,18 @@ locals {
   }
 }
 
+module "api_gateway" {
+  source   = "../../modules/microservice"
+  name     = "api-gateway-container"
+  image    = "saraluciaaa/api-gateway-ecommerce-boot:1.0.0dev"
+  replicas = 1
+  ports    = [8080] # Internal port
+  service_type = "LoadBalancer" x# Expose eternally
+  env_vars = local.common_env
+  depends_on = [module.cloud_config]
+  namespace = "dev"
+}
+
 module "order_service" {
   source   = "../../modules/microservice"
   name     = "order-service-container"
@@ -76,6 +78,7 @@ module "order_service" {
   ports    = [8300]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "payment_service" {
@@ -86,6 +89,7 @@ module "payment_service" {
   ports    = [8400]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "product_service" {
@@ -96,6 +100,7 @@ module "product_service" {
   ports    = [8500]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "shipping_service" {
@@ -106,6 +111,7 @@ module "shipping_service" {
   ports    = [8600]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "user_service" {
@@ -116,6 +122,7 @@ module "user_service" {
   ports    = [8700]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "favourite_service" {
@@ -126,6 +133,7 @@ module "favourite_service" {
   ports    = [8800]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
 
 module "proxy_client" {
@@ -136,4 +144,5 @@ module "proxy_client" {
   ports    = [8900]
   env_vars = local.common_env
   depends_on = [module.cloud_config]
+  namespace = "dev"
 }
