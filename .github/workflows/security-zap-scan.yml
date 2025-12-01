@@ -9,36 +9,13 @@ jobs:
   zap_scan:
     runs-on: ubuntu-latest
     env:
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      DO_CLUSTER_NAME: "k8s-1-32-10-do-0-nyc1-1764574800167"
+      NAMESPACE: "dev"
+      SERVICE_NAME: "api-gateway-container"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Terraform Init
-        working-directory: terraform/environments/dev
-        run: terraform init
-
-      - name: Terraform Apply
-        working-directory: terraform/environments/dev
-        env:
-          TF_VAR_cluster_name: k8s-1-32-10-do-0-nyc1-1764574800167
-          TF_VAR_docker_tag: '1.0.0dev' 
-          TF_VAR_namespace: dev
-          TF_VAR_env: dev
-          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-        run: terraform apply -auto-approve -lock=false -input=false
-
-      - name: Get Terraform Outputs
-        id: tf-outputs
-        working-directory: terraform/environments/dev
-        run: |
-          echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
-          echo "NAMESPACE=$(terraform output -raw namespace)" >> $GITHUB_ENV
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -46,25 +23,34 @@ jobs:
           token: ${{ secrets.DO_TOKEN }}
 
       - name: Get Kubeconfig
-        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
+        run: doctl kubernetes cluster kubeconfig save ${{ env.DO_CLUSTER_NAME }}
 
       - name: Get API Gateway URL
         id: get-url
         run: |
-          # Wait for LoadBalancer IP
-          echo "Waiting for API Gateway LoadBalancer IP..."
-          kubectl wait --namespace ${{ env.NAMESPACE }} --for=condition=ready pod -l app=api-gateway-container --timeout=300s
+          echo "Buscando IP del servicio: ${{ env.SERVICE_NAME }} en namespace: ${{ env.NAMESPACE }}..."
           
+          # Intentar obtener la IP del LoadBalancer
           SERVICE_IP=""
-          while [ -z "$SERVICE_IP" ]; do
-            SERVICE_IP=$(kubectl get svc api-gateway-container -n ${{ env.NAMESPACE }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          RETRIES=0
+          MAX_RETRIES=12 # 2 minutos aprox (12 * 10s)
+          
+          while [ -z "$SERVICE_IP" ] && [ $RETRIES -lt $MAX_RETRIES ]; do
+            SERVICE_IP=$(kubectl get svc ${{ env.SERVICE_NAME }} -n ${{ env.NAMESPACE }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            
             if [ -z "$SERVICE_IP" ]; then
-              echo "Waiting for External IP..."
+              echo "Esperando IP externa... (Intento $RETRIES/$MAX_RETRIES)"
               sleep 10
+              RETRIES=$((RETRIES+1))
             fi
           done
           
-          echo "API Gateway IP: $SERVICE_IP"
+          if [ -z "$SERVICE_IP" ]; then
+            echo "Error: No se pudo encontrar la IP pública del servicio."
+            exit 1
+          fi
+          
+          echo "API Gateway IP encontrada: $SERVICE_IP"
           echo "TARGET_URL=http://$SERVICE_IP:8080" >> $GITHUB_ENV
 
       - name: ZAP Baseline Scan
@@ -73,4 +59,4 @@ jobs:
           target: ${{ env.TARGET_URL }}
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
-
+          allow_issue_writing: false # Pon true si quieres que el bot cree issues en GitHub
