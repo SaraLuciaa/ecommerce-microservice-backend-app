@@ -73,21 +73,21 @@ resource "kubernetes_deployment" "this" {
           }
 
           readiness_probe {
-            http_get {
-              path = "/actuator/health"
+            tcp_socket {
               port = var.ports[0]
             }
-            initial_delay_seconds = 10
-            period_seconds        = 5
+            initial_delay_seconds = 250
+            period_seconds        = 10
+            failure_threshold     = 3
           }
 
           liveness_probe {
-            http_get {
-              path = "/actuator/health"
+            tcp_socket {
               port = var.ports[0]
             }
-            initial_delay_seconds = 20
-            period_seconds        = 10
+            initial_delay_seconds = 250
+            period_seconds        = 15
+            failure_threshold     = 3
           }
         }
       }

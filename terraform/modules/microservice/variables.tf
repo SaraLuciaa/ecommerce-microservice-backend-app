@@ -41,13 +41,13 @@ variable "service_type" {
 variable "memory_limit" {
   description = "Memory limit for the container"
   type        = string
-  default     = "512Mi"
+  default     = "768Mi"
 }
 
 variable "memory_request" {
   description = "Memory request for the container"
   type        = string
-  default     = "256Mi"
+  default     = "384Mi"
 }
 
 variable "cpu_limit" {

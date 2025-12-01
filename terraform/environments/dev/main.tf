@@ -22,7 +22,7 @@ module "zipkin" {
   image      = "openzipkin/zipkin"
   replicas   = 1
   ports      = [9411]
-  namespace  = var.namespace
+  namespace  = kubernetes_namespace.env.metadata[0].name
 
   env_vars = {}
 
@@ -49,7 +49,7 @@ module "service_discovery" {
     SPRING_CONFIG_IMPORT   = "optional:configserver:http://cloud-config-container:9296/"
   }
 
-  namespace  = var.namespace
+  namespace  = kubernetes_namespace.env.metadata[0].name
 }
 
 # CLOUD CONFIG
@@ -60,7 +60,7 @@ module "cloud_config" {
   replicas = var.replicas
   ports  = [9296]
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 
   providers = {
     kubernetes = kubernetes
@@ -76,7 +76,7 @@ module "api_gateway" {
   ports      = [8080]
   service_type = "LoadBalancer"
   env_vars   = local.common_env
-  namespace  = var.namespace
+  namespace  = kubernetes_namespace.env.metadata[0].name
 }
 
 # MICROSERVICIOS
@@ -87,7 +87,7 @@ module "order_service" {
   ports  = [8300]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "payment_service" {
@@ -97,7 +97,7 @@ module "payment_service" {
   ports  = [8400]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "product_service" {
@@ -107,7 +107,7 @@ module "product_service" {
   ports  = [8500]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "shipping_service" {
@@ -117,7 +117,7 @@ module "shipping_service" {
   ports  = [8600]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "user_service" {
@@ -127,7 +127,7 @@ module "user_service" {
   ports  = [8700]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "favourite_service" {
@@ -137,7 +137,7 @@ module "favourite_service" {
   ports  = [8800]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
 
 module "proxy_client" {
@@ -147,5 +147,5 @@ module "proxy_client" {
   ports  = [8900]
   replicas = var.replicas
   env_vars = local.common_env
-  namespace = var.namespace
+  namespace = kubernetes_namespace.env.metadata[0].name
 }
