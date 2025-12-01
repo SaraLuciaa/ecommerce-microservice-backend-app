@@ -2,7 +2,8 @@ name: Security Scan (OWASP ZAP)
 
 on:
   workflow_dispatch:
-  workflow_call:
+  push:
+    branches: [develop]
 
 jobs:
   zap_scan:
