@@ -1,0 +1,63 @@
+name: Security Scan (OWASP ZAP)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    env:
+      DO_CLUSTER_NAME: "k8s-1-32-10-do-0-nyc1-1764574800167"
+      NAMESPACE: "dev"
+      SERVICE_NAME: "api-gateway-container"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Get Kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ env.DO_CLUSTER_NAME }}
+
+      - name: Get API Gateway URL
+        id: get-url
+        run: |
+          echo "Buscando IP del servicio: ${{ env.SERVICE_NAME }} en namespace: ${{ env.NAMESPACE }}..."
+          
+          SERVICE_IP=""
+          RETRIES=0
+          MAX_RETRIES=12
+          
+          while [ -z "$SERVICE_IP" ] && [ $RETRIES -lt $MAX_RETRIES ]; do
+            SERVICE_IP=$(kubectl get svc ${{ env.SERVICE_NAME }} -n ${{ env.NAMESPACE }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            
+            if [ -z "$SERVICE_IP" ]; then
+              echo "Esperando IP externa... (Intento $RETRIES/$MAX_RETRIES)"
+              sleep 10
+              RETRIES=$((RETRIES+1))
+            fi
+          done
+          
+          if [ -z "$SERVICE_IP" ]; then
+            echo "Error: No se pudo encontrar la IP pública del servicio."
+            exit 1
+          fi
+          
+          echo "API Gateway IP encontrada: $SERVICE_IP"
+          echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV
+
+      - name: ZAP Scan 
+        run: |
+          docker run --rm \
+            --network host \
+            -v $(pwd):/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t ${{ env.TARGET_URL }} \
+            -a -I

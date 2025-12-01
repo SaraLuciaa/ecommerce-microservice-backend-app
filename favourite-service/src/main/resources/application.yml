@@ -1,4 +1,8 @@
 
+app:
+  feature:
+    fetch-details: true
+
 server:
   servlet:
     context-path: /favourite-service
@@ -36,6 +40,13 @@ resilience4j:
         sliding-window-size: 10
         wait-duration-in-open-state: 5s
         sliding-window-type: COUNT_BASED
+  retry:
+    instances:
+      favouriteService:
+        max-retry-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
 
 management:
   health:

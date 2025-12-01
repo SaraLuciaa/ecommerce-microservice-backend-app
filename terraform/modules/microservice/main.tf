@@ -1,6 +1,15 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
+  }
+}
+
 resource "kubernetes_deployment" "this" {
   metadata {
-    name = var.name
+    name      = var.name
+    namespace = var.namespace
     labels = {
       app = var.name
     }
@@ -30,6 +39,9 @@ resource "kubernetes_deployment" "this" {
       }
 
       spec {
+
+        restart_policy = "Always"
+
         container {
           image = var.image
           name  = var.name
@@ -51,12 +63,12 @@ resource "kubernetes_deployment" "this" {
 
           resources {
             limits = {
-              memory = "1Gi"
-              cpu    = "500m"
+              memory = var.memory_limit
+              cpu    = var.cpu_limit
             }
             requests = {
-              memory = "512Mi"
-              cpu    = "250m"
+              memory = var.memory_request
+              cpu    = var.cpu_request
             }
           }
 
@@ -66,8 +78,7 @@ resource "kubernetes_deployment" "this" {
             }
             initial_delay_seconds = 250
             period_seconds        = 10
-            timeout_seconds       = 3
-            failure_threshold     = 10
+            failure_threshold     = 3
           }
 
           liveness_probe {
@@ -75,9 +86,8 @@ resource "kubernetes_deployment" "this" {
               port = var.ports[0]
             }
             initial_delay_seconds = 250
-            period_seconds        = 10
-            timeout_seconds       = 3
-            failure_threshold     = 10
+            period_seconds        = 15
+            failure_threshold     = 3
           }
         }
       }
@@ -87,12 +97,15 @@ resource "kubernetes_deployment" "this" {
 
 resource "kubernetes_service" "this" {
   metadata {
-    name = var.name
+    name      = var.name
+    namespace = var.namespace
   }
+
   spec {
     selector = {
       app = var.name
     }
+
     dynamic "port" {
       for_each = var.ports
       content {
@@ -100,6 +113,7 @@ resource "kubernetes_service" "this" {
         target_port = port.value
       }
     }
+
     type = var.service_type
   }
 }
