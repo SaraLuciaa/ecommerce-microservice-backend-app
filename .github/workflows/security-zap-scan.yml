@@ -52,7 +52,7 @@ jobs:
           echo "API Gateway IP encontrada: $SERVICE_IP"
           echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV
 
-      - name: ZAP Scan (Docker Only - No Artifacts)
+      - name: ZAP Scan 
         run: |
           docker run --rm \
             --network host \
@@ -60,4 +60,4 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t ${{ env.TARGET_URL }} \
-            -a
+            -a -I
