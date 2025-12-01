@@ -27,6 +27,25 @@ jobs:
       run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
     - name: Build Docker image for proxy-client-ecommerce-boot Microservice
       run: docker build -f proxy-client/Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/proxy-client-ecommerce-boot:${{ secrets.PROJECT_VERSION }}dev .
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ secrets.DOCKER_USERNAME }}/proxy-client-ecommerce-boot:${{ secrets.PROJECT_VERSION }}dev
+        format: 'table'
+        output: 'trivy-results.txt'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+    - name: Print Trivy results
+      if: always()
+      run: cat trivy-results.txt
+    - name: Upload Trivy scan results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: trivy-results-proxy-client-dev
+        path: trivy-results.txt
     - name: Push proxy-client-ecommerce-boot image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/proxy-client-ecommerce-boot:${{ secrets.PROJECT_VERSION }}dev
 
