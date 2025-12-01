@@ -1,0 +1,4 @@
+# Zap Baseline Scan Rules
+# rule_id	level	action	comment
+# 10010	WARN	IGNORE	Cookie No HttpOnly Flag
+# 10011	WARN	IGNORE	Cookie Without Secure Flag

@@ -1,0 +1,70 @@
+name: Security Scan (OWASP ZAP)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        working-directory: terraform/environments/dev
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform/environments/dev
+        env:
+          TF_VAR_docker_tag: '1.0.0dev' 
+        run: terraform apply -auto-approve
+
+      - name: Get Terraform Outputs
+        id: tf-outputs
+        working-directory: terraform/environments/dev
+        run: |
+          echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
+          echo "NAMESPACE=$(terraform output -raw namespace)" >> $GITHUB_ENV
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Get Kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
+
+      - name: Get API Gateway URL
+        id: get-url
+        run: |
+          # Wait for LoadBalancer IP
+          echo "Waiting for API Gateway LoadBalancer IP..."
+          kubectl wait --namespace ${{ env.NAMESPACE }} --for=condition=ready pod -l app=api-gateway-container --timeout=300s
+          
+          SERVICE_IP=""
+          while [ -z "$SERVICE_IP" ]; do
+            SERVICE_IP=$(kubectl get svc api-gateway-container -n ${{ env.NAMESPACE }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            if [ -z "$SERVICE_IP" ]; then
+              echo "Waiting for External IP..."
+              sleep 10
+            fi
+          done
+          
+          echo "API Gateway IP: $SERVICE_IP"
+          echo "TARGET_URL=http://$SERVICE_IP:8080" >> $GITHUB_ENV
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ env.TARGET_URL }}
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
