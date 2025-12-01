@@ -30,10 +30,9 @@ jobs:
         run: |
           echo "Buscando IP del servicio: ${{ env.SERVICE_NAME }} en namespace: ${{ env.NAMESPACE }}..."
           
-          # Intentar obtener la IP del LoadBalancer
           SERVICE_IP=""
           RETRIES=0
-          MAX_RETRIES=12 # 2 minutos aprox (12 * 10s)
+          MAX_RETRIES=12
           
           while [ -z "$SERVICE_IP" ] && [ $RETRIES -lt $MAX_RETRIES ]; do
             SERVICE_IP=$(kubectl get svc ${{ env.SERVICE_NAME }} -n ${{ env.NAMESPACE }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -53,11 +52,12 @@ jobs:
           echo "API Gateway IP encontrada: $SERVICE_IP"
           echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV
 
-      - name: ZAP Baseline Scan (no artifacts)
-        uses: zaproxy/action-baseline@v0.13.0
-        with:
-          target: ${{ env.TARGET_URL }}
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
-          allow_issue_writing: false
-          enable_artifacts: false
+      - name: ZAP Scan (Docker Only - No Artifacts)
+        run: |
+          docker run --rm \
+            --network host \
+            -v $(pwd):/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t ${{ env.TARGET_URL }} \
+            -a
