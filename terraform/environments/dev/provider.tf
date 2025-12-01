@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 1.0"
+
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
@@ -10,17 +11,27 @@ terraform {
       version = "~> 2.0"
     }
   }
+
+  cloud {
+    organization = "ingesoffttt"
+
+    workspaces {
+      name = "ecommerce-dev"
+    }
+  }
 }
 
 provider "digitalocean" {
   token = var.do_token
 }
 
-# Removed data source to avoid plan-time dependency issues
-# data "digitalocean_kubernetes_cluster" "dev" { ... }
+# Solo CONSULTA el cluster existente
+data "digitalocean_kubernetes_cluster" "cluster" {
+  name = var.cluster_name
+}
 
 provider "kubernetes" {
-  host                   = digitalocean_kubernetes_cluster.dev.endpoint
-  token                  = digitalocean_kubernetes_cluster.dev.kube_config[0].token
-  cluster_ca_certificate = base64decode(digitalocean_kubernetes_cluster.dev.kube_config[0].cluster_ca_certificate)
+  host                   = data.digitalocean_kubernetes_cluster.cluster.endpoint
+  token                  = data.digitalocean_kubernetes_cluster.cluster.kube_config[0].token
+  cluster_ca_certificate = base64decode(data.digitalocean_kubernetes_cluster.cluster.kube_config[0].cluster_ca_certificate)
 }

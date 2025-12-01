@@ -8,7 +8,7 @@ terraform {
 
 resource "kubernetes_deployment" "this" {
   metadata {
-    name = var.name
+    name      = var.name
     namespace = var.namespace
     labels = {
       app = var.name
@@ -39,6 +39,9 @@ resource "kubernetes_deployment" "this" {
       }
 
       spec {
+
+        restart_policy = "Always"
+
         container {
           image = var.image
           name  = var.name
@@ -70,23 +73,21 @@ resource "kubernetes_deployment" "this" {
           }
 
           readiness_probe {
-            tcp_socket {
+            http_get {
+              path = "/actuator/health"
               port = var.ports[0]
             }
-            initial_delay_seconds = 250
-            period_seconds        = 10
-            timeout_seconds       = 3
-            failure_threshold     = 10
+            initial_delay_seconds = 10
+            period_seconds        = 5
           }
 
           liveness_probe {
-            tcp_socket {
+            http_get {
+              path = "/actuator/health"
               port = var.ports[0]
             }
-            initial_delay_seconds = 250
+            initial_delay_seconds = 20
             period_seconds        = 10
-            timeout_seconds       = 3
-            failure_threshold     = 10
           }
         }
       }
@@ -96,13 +97,15 @@ resource "kubernetes_deployment" "this" {
 
 resource "kubernetes_service" "this" {
   metadata {
-    name = var.name
+    name      = var.name
     namespace = var.namespace
   }
+
   spec {
     selector = {
       app = var.name
     }
+
     dynamic "port" {
       for_each = var.ports
       content {
@@ -110,6 +113,7 @@ resource "kubernetes_service" "this" {
         target_port = port.value
       }
     }
+
     type = var.service_type
   }
 }
