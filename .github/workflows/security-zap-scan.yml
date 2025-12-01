@@ -54,10 +54,10 @@ jobs:
           echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV
 
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.13.0
         with:
           target: ${{ env.TARGET_URL }}
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
           allow_issue_writing: false
-          artifact_name: 'zap-scan-results'
+          artifact_name: 'zapscan'
