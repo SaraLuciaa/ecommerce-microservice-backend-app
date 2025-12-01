@@ -37,3 +37,27 @@ variable "service_type" {
   type        = string
   default     = "ClusterIP"
 }
+
+variable "memory_limit" {
+  description = "Memory limit for the container"
+  type        = string
+  default     = "768Mi"
+}
+
+variable "memory_request" {
+  description = "Memory request for the container"
+  type        = string
+  default     = "384Mi"
+}
+
+variable "cpu_limit" {
+  description = "CPU limit for the container"
+  type        = string
+  default     = "250m"
+}
+
+variable "cpu_request" {
+  description = "CPU request for the container"
+  type        = string
+  default     = "100m"
+}
