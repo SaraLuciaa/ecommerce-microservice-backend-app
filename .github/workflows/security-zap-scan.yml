@@ -2,6 +2,8 @@ name: Security Scan (OWASP ZAP)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [develop]
 
 jobs:
   zap_scan:
@@ -24,8 +26,12 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform/environments/dev
         env:
+          TF_VAR_cluster_name: k8s-1-32-10-do-0-nyc1-1764574800167
           TF_VAR_docker_tag: '1.0.0dev' 
-        run: terraform apply -auto-approve
+          TF_VAR_namespace: dev
+          TF_VAR_env: dev
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+        run: terraform apply -auto-approve -lock=false -input=false
 
       - name: Get Terraform Outputs
         id: tf-outputs
