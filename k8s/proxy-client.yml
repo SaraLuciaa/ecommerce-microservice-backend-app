@@ -43,5 +43,4 @@ spec:
   ports:
     - port: 8900
       targetPort: 8900
-      nodePort: 30004
   type: NodePort

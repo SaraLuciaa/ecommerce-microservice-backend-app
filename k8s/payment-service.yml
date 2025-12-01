@@ -43,7 +43,6 @@ spec:
   ports:
     - port: 8400
       targetPort: 8400
-      nodePort: 30008
   type: NodePort
 
 

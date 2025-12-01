@@ -41,5 +41,4 @@ spec:
   ports:
     - port: 9296
       targetPort: 9296
-      nodePort: 30002
   type: NodePort

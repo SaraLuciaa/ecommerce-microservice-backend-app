@@ -43,7 +43,6 @@ spec:
   ports:
     - port: 8300
       targetPort: 8300
-      nodePort: 30007
   type: NodePort
 
 
