@@ -51,13 +51,13 @@ jobs:
           fi
           
           echo "API Gateway IP encontrada: $SERVICE_IP"
-          echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV  
-          
+          echo "TARGET_URL=http://$SERVICE_IP:8080/actuator/health" >> $GITHUB_ENV
+
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
+        uses: zaproxy/action-baseline@v0.12.0
         with:
           target: ${{ env.TARGET_URL }}
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
           allow_issue_writing: false
-          artifact_name: 'zapreport'
+          artifact_name: 'zap-scan-results'
