@@ -26,8 +26,9 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform/environments/dev
         env:
+          TF_VAR_cluster_name: k8s-1-32-10-do-0-nyc1-1764574800167
           TF_VAR_docker_tag: '1.0.0dev' 
-        run: terraform apply -auto-approve -lock=false
+        run: terraform apply -auto-approve -lock=false -input=false
 
       - name: Get Terraform Outputs
         id: tf-outputs
