@@ -27,7 +27,7 @@ jobs:
         working-directory: terraform/environments/dev
         env:
           TF_VAR_docker_tag: '1.0.0dev' 
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -lock=false
 
       - name: Get Terraform Outputs
         id: tf-outputs
