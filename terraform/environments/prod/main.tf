@@ -149,3 +149,14 @@ module "proxy_client" {
   env_vars = local.common_env
   namespace = kubernetes_namespace.env.metadata[0].name
 }
+
+module "observability" {
+  source           = "../../modules/observability"
+  namespace        = "monitoring"
+  grafana_password = var.grafana_password
+
+  providers = {
+    helm       = helm
+    kubernetes = kubernetes
+  }
+}

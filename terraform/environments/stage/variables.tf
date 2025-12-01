@@ -23,3 +23,8 @@ variable "replicas" {
   type    = number
   default = 1
 }
+
+variable "grafana_password" {
+  type      = string
+  sensitive = true
+}
