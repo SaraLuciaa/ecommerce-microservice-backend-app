@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: proxy-client
+  labels:
+    app: proxy-client
 spec:
   replicas: 1
   selector:
@@ -11,6 +13,10 @@ spec:
     metadata:
       labels:
         app: proxy-client
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8900"
     spec:
       containers:
         - name: proxy-client

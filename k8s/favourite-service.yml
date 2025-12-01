@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: favourite-service
+  labels:
+    app: favourite-service
 spec:
   replicas: 1
   selector:
@@ -11,6 +13,10 @@ spec:
     metadata:
       labels:
         app: favourite-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8800"
     spec:
       containers:
         - name: favourite-service
@@ -37,6 +43,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: favourite-service
+  labels:
+    app: favourite-service
 spec:
   selector:
     app: favourite-service

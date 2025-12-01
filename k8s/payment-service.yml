@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-service
+  labels:
+    app: payment-service
 spec:
   replicas: 1
   selector:
@@ -11,6 +13,10 @@ spec:
     metadata:
       labels:
         app: payment-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8400"
     spec:
       containers:
         - name: payment-service
@@ -37,6 +43,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: payment-service
+  labels:
+    app: payment-service
 spec:
   selector:
     app: payment-service

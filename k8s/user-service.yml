@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
+  labels:
+    app: user-service
 spec:
   replicas: 1
   selector:
@@ -11,6 +13,10 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8700"
     spec:
       containers:
         - name: user-service
@@ -42,6 +48,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-service
+  labels:
+    app: user-service
 spec:
   selector:
     app: user-service
