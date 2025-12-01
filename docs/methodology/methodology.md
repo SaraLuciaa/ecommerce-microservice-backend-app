@@ -95,10 +95,19 @@ A continuación, se documenta la evidencia de las iteraciones clave realizadas d
 * **Periodo:** 26 de noviembre de 2025 - 1 de diciembre de 2025
 
 #### Métricas y Reportes
-* **Historias Completadas:** [Cantidad]
-* **Puntos de Historia:** [Cantidad]
+* **Historias Completadas:** 26 de 26
+* **Puntos de Historia:** 15 de 15
 
 **Gráfica de Velocidad / Flujo Acumulado:**
-> *[ESPACIO RESERVADO: PEGAR AQUÍ IMAGEN DEL REPORTE DE JIRA SPRINT 2]*
-> *(Esta gráfica evidencia la consistencia del equipo y el flujo de tickets entre estados)*
+![alt text](sprint2.png)
+
+> *Esta gráfica demuestra el avance diario de las tareas contra el tiempo estimado (la linea roja es lo que se esperaba, la linea verde es lo que se logro)*
+
+![alt text](sprint2.1.png)
+
+> *Esta gráfica demuestra el avance diario de los puntos de historia contra el tiempo estimado (la linea roja es lo que se esperaba, la linea verde es lo que se logro)*
+
+![alt text](sprint2.2.png)  
+
+> *Esta gráfica demuestra el avance del trabajo restante (WIP) contra el tiempo estimado (la linea roja es la cantidad de trabajo)*
 
