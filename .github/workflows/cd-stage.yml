@@ -54,7 +54,9 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Checking Minikube status..."
+          $ErrorActionPreference = 'Continue'
           $status = minikube status --format "{{.Host}}" 2>$null
+          $ErrorActionPreference = 'Stop'
           
           if ($status -eq "Running") {
             Write-Host "Minikube is running."
@@ -63,6 +65,7 @@ jobs:
             Write-Host "Minikube is NOT running."
             echo "minikube_running=false" >> $env:GITHUB_OUTPUT
           }
+          exit 0
 
       - name: Start Minikube if Stopped
         if: steps.minikube_check.outputs.minikube_running == 'false'
